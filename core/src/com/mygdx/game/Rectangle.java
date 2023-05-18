@@ -11,7 +11,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 
-public class map extends ApplicationAdapter{
+public class Rectangle extends ApplicationAdapter{
 public Rectangle wall(int x,int y, int z, int w){
     return new Rectangle(x,y,z,w);
 }
