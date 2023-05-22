@@ -10,13 +10,28 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.ScreenUtils;
 
-
 public class map extends ApplicationAdapter{
-public Rectangle wall(int x,int y, int z, int w){
-    return new Rectangle(x,y,z,w);
+    private int wherx;
+    private int whery;
+    private int sizex;
+    private int sizey;
+
+    public  map(int x,int y, int z, int w){
+         wherx =z;
+         whery =w;
+         sizex=x;
+        sizey=y;
 }
-public Rectangle wall(int x,int y){
-    return new Rectangle(x,y,100,100);
+public  map(int x,int y){
+    wherx =100;
+    whery =100;
+    sizex=x;
+    sizey=y;
+        // return new Rectangle(x,y,100,100);
+}
+public Rectangle create2(){
+   return new Rectangle(sizex,sizey,wherx,whery);
+
 }
 
 

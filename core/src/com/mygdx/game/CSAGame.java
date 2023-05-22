@@ -22,6 +22,8 @@ import static java.lang.Math.sin;
 public class CSAGame extends ApplicationAdapter {
 	SpriteBatch batch;
 	Texture img;
+	Texture bg;
+	Texture bul;
 	private Rectangle player;
 	private OrthographicCamera camera;
 	private int moveSpeed;
@@ -32,8 +34,9 @@ public class CSAGame extends ApplicationAdapter {
 	private double bulletVelY;
 	private int timeSeconds = 0;
 	private int period = 1;
-
-
+	private Rectangle wall;
+private int wallsize;
+// bug: when the player reaches a high enough Y-cordinate and fires a bullet, the game crashes.
 
 
 Texture img2;
@@ -48,6 +51,8 @@ Texture img2;
 		batch = new SpriteBatch();
 		img = new Texture("badlogic.jpg");
 		img2 = new Texture("badlogic.jpg");
+		bul = new Texture("Bullet.png");
+		bg = new Texture("Background1.png");
 		//image2 size needs to be set
 		player = new Rectangle();
 		player.x = 20;
@@ -55,12 +60,13 @@ Texture img2;
 		player.width = 64;
 		player.height = 64;
 		moveSpeed = 300;
-		bulletSpeed = 100;
+		bulletSpeed = 400;
 		camera.position.x = player.x;
 		camera.position.y = player.y;
 		camera.update();
 		bullets = new Array<Rectangle>();
 
+wall = new Rectangle(10,20,10000,10000);
 	}
 
 
@@ -80,29 +86,29 @@ Texture img2;
 		camera.position.y = player.y;
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
-
-		batch.draw(img2, 400, 32,
+		batch.draw(img, wall.x, wall.y);
+		batch.draw(bg, 400, 32,
 				5000, 5000);
 		batch.draw(img, player.x, player.y);
 		for (Rectangle bullet : bullets) {
-			batch.draw(img, bullet.x, bullet.y);
+			batch.draw(bul, bullet.x, bullet.y, 100, 100);
 		}
 		camera.update();
 		batch.end();
-		if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+		if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)|| Gdx.input.isKeyPressed(Input.Keys.D)) {
 			player.x += moveSpeed * Gdx.graphics.getDeltaTime();
 			camera.position.x = player.x;
 		}
-		if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+		if (Gdx.input.isKeyPressed(Input.Keys.LEFT)|| Gdx.input.isKeyPressed(Input.Keys.A)) {
 			player.x -= moveSpeed * Gdx.graphics.getDeltaTime();
 			camera.position.x = player.x;
 
 		}
-		if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
+		if (Gdx.input.isKeyPressed(Input.Keys.UP)|| Gdx.input.isKeyPressed(Input.Keys.W)) {
 			player.y += moveSpeed * Gdx.graphics.getDeltaTime();
 			camera.position.y = player.y;
 		}
-		if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
+		if (Gdx.input.isKeyPressed(Input.Keys.DOWN) ||Gdx.input.isKeyPressed(Input.Keys.S)) {
 			player.y -= moveSpeed * Gdx.graphics.getDeltaTime();
 			camera.position.y = player.y;
 
@@ -127,7 +133,7 @@ Texture img2;
 		for (Array.ArrayIterator<Rectangle> iter = bullets.iterator(); iter.hasNext(); ) {
 			bullet bullet = (com.mygdx.game.bullet) iter.next();
 			// sets the bullets to go forward in the right direction. Slightly off but mostly works.
-			bullet.y += bullet.getVelY()* Gdx.graphics.getDeltaTime();;
+			bullet.y += bullet.getVelY()* Gdx.graphics.getDeltaTime();
 			bullet.x += bullet.getVelX()* Gdx.graphics.getDeltaTime();
 			// make sure the bucket stays within the screen bounds
 			if(bullet.y < 0) iter.remove();
@@ -143,16 +149,6 @@ Texture img2;
 
 		}
 
-
-
-
-
-
-
-
-
-
-	
 	@Override
 	public void dispose () {
 		batch.dispose();
