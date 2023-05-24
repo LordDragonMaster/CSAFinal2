@@ -13,6 +13,7 @@
 //XG: Not actually sure what this top bit does. Definitely important but I don't know why.
 //XG: If I comment it out all our bullet stuff turns to errors and our main class doesn't work.
 package com.mygdx.game;
+
 //XG: Was used to calculate bullet trajectories but became irrelevant after I managed to fix the bullets
 //XG: by means that I currently do not understand.
 import java.util.Iterator;
@@ -27,13 +28,13 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 //XG: Draws all our graphic stuff. Don't understand this bit too well at the moment, but it's definitely important
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.maps.MapObjects;
+import com.badlogic.gdx.maps.objects.RectangleMapObject;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
+import com.badlogic.gdx.math.*;
 //XG: We use the rectangle for basically all our objects at the moment. We should probably have our own
 //XG: objects for the player and other stuff.
-import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.math.Vector2;
 //XG: Used for calculating the bullet trajectory. Only used once. Could probably be replaced.
-import com.badlogic.gdx.math.Vector3;
 //XG: Used for the bullet array.
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
@@ -46,7 +47,14 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 //XG: I was originally intending to use MathUtils for this but somehow ended up with these instead.
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
+//XG: The following stuff is what we need in order to use the Tiled map editor for our map.
+import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
+import com.badlogic.gdx.maps.tiled.TmxMapLoader;
+import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 
+import com.badlogic.gdx.maps.MapObject;
+import com.badlogic.gdx.maps.objects.TextureMapObject;
 public class CSAGame extends ApplicationAdapter {
 	SpriteBatch batch;
 	Texture img;
@@ -56,19 +64,23 @@ public class CSAGame extends ApplicationAdapter {
 	private OrthographicCamera camera;
 	private Viewport viewport;
 	private int moveSpeed;
-	private  Rectangle box;
+	  Rectangle box;
 	private Array<Rectangle> bullets;
 	private int bulletSpeed;
-	private double bulletVelX;
-	private double bulletVelY;
-	private int timeSeconds = 0;
-	private int period = 1;
+	 double bulletVelX;
+	 double bulletVelY;
+	 int timeSeconds = 0;
+	 int period = 1;
 	private Rectangle wall;
+	TiledMap tiledMap;
+	TiledMapRenderer tiledMapRenderer;
 private int wallsize;
 
 
 
 Texture img2;
+//XG: collision stuff(still testing)
+	MapObjects objects;
 
 
 	//camera.position.set(x, y)
@@ -76,12 +88,12 @@ Texture img2;
 	public void create () {
  box =new Rectangle(200,540,100,100);
 		camera = new OrthographicCamera();
-		camera.setToOrtho(false, 1000, 1000);
+		camera.setToOrtho(false, 300, 300);
 		// XG: not entirely certain how this works, but what it does is set the viewport to a certain aspect-ratio
 		// XG: so that distortion effect doesn't happen anymore. We might have to edit some stuff later so that
 		// XG: everything in our game runs on the same world coordinate system. Also, maybe shrink the whole game
 		// XG: so we're not using such large values. That's what the wiki advises at least.
-		viewport = new FitViewport(1000, 1000, camera);
+		viewport = new FitViewport(300, 300, camera);
 		batch = new SpriteBatch();
 		img = new Texture("badlogic.jpg");
 		img2 = new Texture("badlogic.jpg");
@@ -93,9 +105,9 @@ Texture img2;
 		player.x = 20;
 		player.y = 20;
 
-		player.width = 200;
-		player.height = 200;
-		moveSpeed = 300;
+		player.width = 32;
+		player.height = 32;
+		moveSpeed = 100;
 		bulletSpeed = 400;
 		//XG: sets the camera to the players location
 		camera.position.x = player.x;
@@ -103,9 +115,15 @@ Texture img2;
 		camera.update();
 		//XG: Creates the 'bullets' array.
 		bullets = new Array<Rectangle>();
+		tiledMap = new TmxMapLoader().load("SampleMap.tmx");
+		tiledMapRenderer = new OrthogonalTiledMapRenderer(tiledMap);
+
+
+
 
 wall = new Rectangle(10,20,10000,10000);
 	}
+	
 	// XG: libGDX measures everything from its bottom-left corner, so the two methods below account for that
 	// XG: offset by adding half the players height/width to the players y/x value.
  private float yOrigin(){
@@ -129,6 +147,21 @@ wall = new Rectangle(10,20,10000,10000);
 
 	@Override
 	public void render () {
+
+		int objectLayerId = 2;
+		TiledMapTileLayer collisionObjectLayer = (TiledMapTileLayer)tiledMap.getLayers().get(objectLayerId);
+		MapObjects objects = collisionObjectLayer.getObjects();
+
+// there are several other types, Rectangle is probably the most common one
+		for (RectangleMapObject rectangleObject : objects.getByType(RectangleMapObject.class)) {
+
+			Rectangle rectangle = rectangleObject.getRectangle();
+			if (player.overlaps(rectangle)) {
+				create();
+			}
+		}
+
+
 		ScreenUtils.clear(1, 0, 1, 1);
 		//XG: sets the camera to the center of the player, then updates the camera.
 		camera.position.y = yOrigin();
@@ -138,6 +171,8 @@ wall = new Rectangle(10,20,10000,10000);
 		camera.update();
 		//XG: what does the following code thing do exactly? it says it sets the 'projection matrix' but i'm
 		//XG: unsure what that means. Should we be using the viewport instead of the camera?
+		tiledMapRenderer.setView(camera);
+		tiledMapRenderer.render();
 		batch.setProjectionMatrix(camera.combined);
 		//XG: I think I would like some additional information about the whole 'batch/draw' thing. I'm a little
 		//XG: unclear on its capabilities and limitations at the moment.
@@ -145,7 +180,7 @@ wall = new Rectangle(10,20,10000,10000);
 		//XG: draws the wall at specified coordinates. Doesn't set its size.
 		batch.draw(img, wall.x, wall.y);
 		//XG: Draws the background using specified values and texture.
-		batch.draw(bg, 400, 32, 5000, 5000);
+		//batch.draw(bg, 400, 32, 5000, 5000);
 		//XG: Draws the player. Do not set the following values to use the players origin/center.
 		batch.draw(img, player.x, player.y, player.width, player.height);
 		//XG: For each loop that goes through each bullet and draws them.
@@ -176,6 +211,35 @@ wall = new Rectangle(10,20,10000,10000);
 			//camera.position.y = player.y;
 
 		}
+		if ((Gdx.input.isKeyPressed(Input.Keys.DOWN) ||Gdx.input.isKeyPressed(Input.Keys.S))&&Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT) ) {
+			for(int i =0; i<5; i++) {
+				player.y -= moveSpeed - 5 * Gdx.graphics.getDeltaTime();
+
+			}
+			//camera.position.y = player.y;
+
+		}
+		if ((Gdx.input.isKeyPressed(Input.Keys.RIGHT)|| Gdx.input.isKeyPressed(Input.Keys.D))&&Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)) {
+			for(int i =0; i<5; i++)
+			player.x += moveSpeed +5* Gdx.graphics.getDeltaTime();
+			//camera.position.x = player.x;
+		}
+		if ((Gdx.input.isKeyPressed(Input.Keys.LEFT)|| Gdx.input.isKeyPressed(Input.Keys.A) )&&Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)) {
+			for(int i =0; i<5; i++)
+			player.x -= moveSpeed -5* Gdx.graphics.getDeltaTime();
+			//camera.position.x = player.x;
+
+		}
+		if ((Gdx.input.isKeyPressed(Input.Keys.UP)|| Gdx.input.isKeyPressed(Input.Keys.W))&&Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT) ) {
+
+			for(int i =0; i<10; i++){
+			 player.y += moveSpeed +5* Gdx.graphics.getDeltaTime();}
+			//camera.position.y = player.y;
+		}
+		if(player.y < 0)    create();
+		if(player.y > 5000)   create() ;// hey it ahmed  create() restart the game
+		if(player.x < 0)   create();
+		if(player.x > 5000)  create() ;
 		//if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {}
 		//XG: When the screen is clicked, it does some boring math stuff and
 		if(Gdx.input.justTouched()) {
@@ -190,6 +254,8 @@ wall = new Rectangle(10,20,10000,10000);
 
 
 		camera.update();
+
+
 //Xander here. I kept pressing a button that changed the formatting, so it wouldn't break and somehow this
 // ended up working??
 // Each of the bullets has their own trajectory now, and I fixed their trajectory so its accurate as well.
@@ -206,19 +272,25 @@ wall = new Rectangle(10,20,10000,10000);
 			if(bullet.y > 5000) iter.remove();
 			if(bullet.x < 0) iter.remove();
 			if(bullet.x > 5000) iter.remove();
+
 			/*float temp =timeSeconds ;
 			if(temp> period){
 				timeSeconds -= period;*/
-
+//  System.exit(0);AM: this to exit the game
 			}
 
 
 		}
-//XG: I don't actually know what the 'dispose' stuff is needed for. I know it is needed, but not why.
+//XG: So we need to dispose some of our assets, or we get a memory leak. So if we can dispose something
+//XG: here, we should
 	@Override
 	public void dispose () {
 		batch.dispose();
 		img.dispose();
+		bg.dispose();
+		bul.dispose();
+		tiledMap.dispose();
+		img2.dispose();
 	}
 	//XG: The resize thing makes it so our screen no longer gets distorted when we change the window size.
 	@Override
