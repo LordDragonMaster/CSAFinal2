@@ -28,6 +28,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 //XG: Draws all our graphic stuff. Don't understand this bit too well at the moment, but it's definitely important
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.maps.Map;
 import com.badlogic.gdx.maps.MapObjects;
 import com.badlogic.gdx.maps.objects.RectangleMapObject;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
@@ -58,13 +59,19 @@ import com.badlogic.gdx.maps.objects.TextureMapObject;
 public class CSAGame extends ApplicationAdapter {
 	SpriteBatch batch;
 	Texture img;
+	Texture ime;
 	Texture bg;
 	Texture bul;
 	private Rectangle player;
+	private Rectangle emey;
+	dumbenmey oneem= new dumbenmey(20, 20, 20, 20, 20,img ,true);
+
 	private OrthographicCamera camera;
 	private Viewport viewport;
 	private int moveSpeed;
-	  Rectangle box;
+	private int emenymovement;
+	Rectangle box2;
+	Rectangle box;
 	private Array<Rectangle> bullets;
 	private int bulletSpeed;
 	 double bulletVelX;
@@ -73,6 +80,7 @@ public class CSAGame extends ApplicationAdapter {
 	 int period = 1;
 	private Rectangle wall;
 	TiledMap tiledMap;
+	Map map;
 	TiledMapRenderer tiledMapRenderer;
 private int wallsize;
 
@@ -86,28 +94,36 @@ Texture img2;
 	//camera.position.set(x, y)
 	@Override
 	public void create () {
+
+		map = tiledMap;
  box =new Rectangle(200,540,100,100);
 		camera = new OrthographicCamera();
-		camera.setToOrtho(false, 300, 300);
+		camera.setToOrtho(false, 1000, 1000);
 		// XG: not entirely certain how this works, but what it does is set the viewport to a certain aspect-ratio
 		// XG: so that distortion effect doesn't happen anymore. We might have to edit some stuff later so that
 		// XG: everything in our game runs on the same world coordinate system. Also, maybe shrink the whole game
 		// XG: so we're not using such large values. That's what the wiki advises at least.
-		viewport = new FitViewport(300, 300, camera);
+		viewport = new FitViewport(1000, 1000, camera);
 		batch = new SpriteBatch();
 		img = new Texture("badlogic.jpg");
 		img2 = new Texture("badlogic.jpg");
+		ime = new Texture ("badlogic.jpg");
 		bul = new Texture("Bullet.png");
 		bg = new Texture("Background1.png");
 		//image2 size needs to be set
 		//XG: creates the player and sets their attributes.
+		emey = new Rectangle();
 		player = new Rectangle();
 		player.x = 20;
 		player.y = 20;
-
+		emey.x = 20;
+		emey.y = 20;
+		emey.width = 32;
+		emey.height = 32;
 		player.width = 32;
 		player.height = 32;
 		moveSpeed = 100;
+		emenymovement = 100;
 		bulletSpeed = 400;
 		//XG: sets the camera to the players location
 		camera.position.x = player.x;
@@ -148,20 +164,39 @@ wall = new Rectangle(10,20,10000,10000);
 	@Override
 	public void render () {
 
+Vector2 playerLocation = new Vector2(player.x, player.y);
 		int objectLayerId = 2;
 		TiledMapTileLayer collisionObjectLayer = (TiledMapTileLayer)tiledMap.getLayers().get(objectLayerId);
-		MapObjects objects = collisionObjectLayer.getObjects();
+		//Gdx.app.log("Count", "Object count:"+ collisionObjectLayer.getObjects().getCount());
 
 // there are several other types, Rectangle is probably the most common one
-		for (RectangleMapObject rectangleObject : objects.getByType(RectangleMapObject.class)) {
+	/*	for (MapObject rectangleObject : objects) {
 
-			Rectangle rectangle = rectangleObject.getRectangle();
-			if (player.overlaps(rectangle)) {
-				create();
+			MapObject rectangle = rectangleObject;
+			if (Intersector.overlaps(rectangle, playerLocation)) {
+				Gdx.app.log("NoWAY", "IT WORKS! HALLELUJAH!");
 			}
 		}
+*/
+		/*if(player.y - emey.y < 20)  Gdx.app.log("MyTag", "my informative message"); ;
+		if(player.y + emey.y > 50) Gdx.app.log("MyTag", "my informative message"); // hey it ahmed  create() restart the game
+		if(player.x +emey.x < 0)  Gdx.app.log("MyTag", "my informative message");
+		if(player.x - emey.x > 50)
 
+if (emey.x<200) {
 
+			emey.x += emenymovement * Gdx.graphics.getDeltaTime();
+			//Gdx.app.log("MyTag", "ENMEY IS MOVEING");
+			//camera.position.x = player.x;
+		}
+		if(emey.x ==0)
+			if(emey.x ==200)
+		 if (emey.x>0) {
+			emey.x -= emenymovement * Gdx.graphics.getDeltaTime();
+			//Gdx.app.log("MyTag", "ENMEY IS MOVEING");
+			//camera.position.x = player.x;
+		}*/
+		oneem.move();
 		ScreenUtils.clear(1, 0, 1, 1);
 		//XG: sets the camera to the center of the player, then updates the camera.
 		camera.position.y = yOrigin();
@@ -179,6 +214,7 @@ wall = new Rectangle(10,20,10000,10000);
 		batch.begin();
 		//XG: draws the wall at specified coordinates. Doesn't set its size.
 		batch.draw(img, wall.x, wall.y);
+		batch.draw(img, oneem.posx(), oneem.posx());
 		//XG: Draws the background using specified values and texture.
 		//batch.draw(bg, 400, 32, 5000, 5000);
 		//XG: Draws the player. Do not set the following values to use the players origin/center.
@@ -195,6 +231,7 @@ wall = new Rectangle(10,20,10000,10000);
 		//XG: if the player is moving diagonally.
 		if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)|| Gdx.input.isKeyPressed(Input.Keys.D)) {
 			player.x += moveSpeed * Gdx.graphics.getDeltaTime();
+
 			//camera.position.x = player.x;
 		}
 		if (Gdx.input.isKeyPressed(Input.Keys.LEFT)|| Gdx.input.isKeyPressed(Input.Keys.A)) {
@@ -214,26 +251,34 @@ wall = new Rectangle(10,20,10000,10000);
 		if ((Gdx.input.isKeyPressed(Input.Keys.DOWN) ||Gdx.input.isKeyPressed(Input.Keys.S))&&Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT) ) {
 			for(int i =0; i<5; i++) {
 				player.y -= moveSpeed - 5 * Gdx.graphics.getDeltaTime();
+				//Gdx.app.log("MyTag", "the for works");
 
 			}
 			//camera.position.y = player.y;
 
 		}
 		if ((Gdx.input.isKeyPressed(Input.Keys.RIGHT)|| Gdx.input.isKeyPressed(Input.Keys.D))&&Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)) {
-			for(int i =0; i<5; i++)
+			for(int i =0; i<2; i++){
 			player.x += moveSpeed +5* Gdx.graphics.getDeltaTime();
+			//Gdx.app.log("MyTag", "the for works");
+			}
+
 			//camera.position.x = player.x;
 		}
 		if ((Gdx.input.isKeyPressed(Input.Keys.LEFT)|| Gdx.input.isKeyPressed(Input.Keys.A) )&&Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)) {
-			for(int i =0; i<5; i++)
+			for(int i =0; i<5; i++){
 			player.x -= moveSpeed -5* Gdx.graphics.getDeltaTime();
+				//Gdx.app.log("MyTag", "the for works");
+			}
 			//camera.position.x = player.x;
 
 		}
 		if ((Gdx.input.isKeyPressed(Input.Keys.UP)|| Gdx.input.isKeyPressed(Input.Keys.W))&&Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT) ) {
 
 			for(int i =0; i<10; i++){
-			 player.y += moveSpeed +5* Gdx.graphics.getDeltaTime();}
+			 player.y += moveSpeed +5* Gdx.graphics.getDeltaTime();
+				//Gdx.app.log("MyTag", "the for works");
+			}
 			//camera.position.y = player.y;
 		}
 		if(player.y < 0)    create();
