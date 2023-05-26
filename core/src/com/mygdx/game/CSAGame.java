@@ -17,6 +17,7 @@ package com.mygdx.game;
 //XG: Was used to calculate bullet trajectories but became irrelevant after I managed to fix the bullets
 //XG: by means that I currently do not understand.
 import java.util.Iterator;
+import java.util.Objects;
 //XG: not sure what the next two do, but they are also important.
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
@@ -64,8 +65,10 @@ public class CSAGame extends ApplicationAdapter {
 	Texture bul;
 	private Rectangle player;
 	private Rectangle emey;
-	dumbenmey oneem= new dumbenmey(20, 20, 20, 20, 20,img ,true);
-
+	dumbenmey oneem= new dumbenmey(20, 20, 0, 600, 200,img ,true);
+	dumbenmey oneem1= new dumbenmey(20, 20, 100, 600, 200,img ,false);
+	dumbenmey oneem2= new dumbenmey(20, 20, 200, 800, 200,img ,true);
+	dumbenmey oneem3= new dumbenmey(20, 20, 0, 100, 200,img ,false);
 	private OrthographicCamera camera;
 	private Viewport viewport;
 	private int moveSpeed;
@@ -94,6 +97,11 @@ Texture img2;
 	//camera.position.set(x, y)
 	@Override
 	public void create () {
+		/* oneem= new dumbenmey(20, 20, 0, 600, 200,img ,true);
+		 oneem1=ew dumbenmey(20, 20, 100, 600, 200,img ,false);
+		 oneem2=  dumbenmey(20, 20, 200, 800, 200,img ,true);
+		 oneem3=  dumbenmey(20, 20, 0, 100, 200,img ,false);
+		 */
 
 		map = tiledMap;
  box =new Rectangle(200,540,100,100);
@@ -133,6 +141,12 @@ Texture img2;
 		bullets = new Array<Rectangle>();
 		tiledMap = new TmxMapLoader().load("SampleMap.tmx");
 		tiledMapRenderer = new OrthogonalTiledMapRenderer(tiledMap);
+		map = tiledMap;
+		objects = new MapObjects();
+		int objectLayerId = 2;
+
+		TiledMapTileLayer collisionObjectLayer = (TiledMapTileLayer)map.getLayers().get(objectLayerId);
+		 objects = collisionObjectLayer.getObjects();
 
 
 
@@ -165,19 +179,22 @@ wall = new Rectangle(10,20,10000,10000);
 	public void render () {
 
 Vector2 playerLocation = new Vector2(player.x, player.y);
-		int objectLayerId = 2;
-		TiledMapTileLayer collisionObjectLayer = (TiledMapTileLayer)tiledMap.getLayers().get(objectLayerId);
+
+
+		Gdx.app.log("COUNT:", ":" +objects.getCount());
 		//Gdx.app.log("Count", "Object count:"+ collisionObjectLayer.getObjects().getCount());
+		for (RectangleMapObject rectangleObject : objects.getByType(RectangleMapObject.class)) {
 
-// there are several other types, Rectangle is probably the most common one
-	/*	for (MapObject rectangleObject : objects) {
-
-			MapObject rectangle = rectangleObject;
-			if (Intersector.overlaps(rectangle, playerLocation)) {
-				Gdx.app.log("NoWAY", "IT WORKS! HALLELUJAH!");
+			Rectangle rectangle = rectangleObject.getRectangle();
+			if (Intersector.overlaps(rectangle, player)) {
+				Gdx.app.log("OMG", "IT WORKS!");
 			}
 		}
-*/
+
+
+// there are several other types, Rectangle is probably the most common one
+
+
 		/*if(player.y - emey.y < 20)  Gdx.app.log("MyTag", "my informative message"); ;
 		if(player.y + emey.y > 50) Gdx.app.log("MyTag", "my informative message"); // hey it ahmed  create() restart the game
 		if(player.x +emey.x < 0)  Gdx.app.log("MyTag", "my informative message");
@@ -197,6 +214,9 @@ if (emey.x<200) {
 			//camera.position.x = player.x;
 		}*/
 		oneem.move();
+		oneem1.move();
+		oneem2.move();
+		oneem3.move();
 		ScreenUtils.clear(1, 0, 1, 1);
 		//XG: sets the camera to the center of the player, then updates the camera.
 		camera.position.y = yOrigin();
@@ -214,7 +234,10 @@ if (emey.x<200) {
 		batch.begin();
 		//XG: draws the wall at specified coordinates. Doesn't set its size.
 		batch.draw(img, wall.x, wall.y);
-		batch.draw(img, oneem.posx(), oneem.posx());
+		batch.draw(img, oneem.posx(), oneem.posy());
+		batch.draw(img, oneem1.posx(), oneem1.posy());
+		batch.draw(img, oneem2.posx(), oneem2.posy());
+		batch.draw(img, oneem3.posx(), oneem3.posy());
 		//XG: Draws the background using specified values and texture.
 		//batch.draw(bg, 400, 32, 5000, 5000);
 		//XG: Draws the player. Do not set the following values to use the players origin/center.
