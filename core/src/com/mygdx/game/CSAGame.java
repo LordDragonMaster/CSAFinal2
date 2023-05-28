@@ -16,8 +16,6 @@ package com.mygdx.game;
 
 //XG: Was used to calculate bullet trajectories but became irrelevant after I managed to fix the bullets
 //XG: by means that I currently do not understand.
-import java.util.Iterator;
-import java.util.Objects;
 //XG: not sure what the next two do, but they are also important.
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
@@ -29,18 +27,15 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 //XG: Draws all our graphic stuff. Don't understand this bit too well at the moment, but it's definitely important
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.maps.Map;
-import com.badlogic.gdx.maps.MapObjects;
+		import com.badlogic.gdx.maps.MapObjects;
 import com.badlogic.gdx.maps.objects.RectangleMapObject;
-import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
-import com.badlogic.gdx.math.*;
+		import com.badlogic.gdx.math.*;
 //XG: We use the rectangle for basically all our objects at the moment. We should probably have our own
 //XG: objects for the player and other stuff.
 //XG: Used for calculating the bullet trajectory. Only used once. Could probably be replaced.
 //XG: Used for the bullet array.
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.utils.TimeUtils;
 //XG: Used for making sure things don't get stretched when the window is resized, and so that later on we'll
 //XG: be able to use world coordinates instead of pixel measurements.
 import com.badlogic.gdx.utils.viewport.FitViewport;
@@ -56,82 +51,86 @@ import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 
 import com.badlogic.gdx.maps.MapObject;
-import com.badlogic.gdx.maps.objects.TextureMapObject;
+
 public class CSAGame extends ApplicationAdapter {
 	SpriteBatch batch;
 	Texture img;
 	Texture ime;
-	Texture bg;
 	Texture bul;
 	private Rectangle player;
-	private Rectangle emey;
-	dumbenmey oneem= new dumbenmey(20, 20, 0, 600, 200,img ,true);
-	dumbenmey oneem1= new dumbenmey(20, 20, 100, 600, 200,img ,false);
-	dumbenmey oneem2= new dumbenmey(20, 20, 200, 800, 200,img ,true);
-	dumbenmey oneem3= new dumbenmey(20, 20, 0, 100, 200,img ,false);
+	private Rectangle enemy;
+	dumbEnemy oneem= new dumbEnemy(20, 20, 0, 600, 200,img ,true);
+	dumbEnemy oneem1= new dumbEnemy(20, 20, 100, 600, 200,img ,false);
+	dumbEnemy oneem2= new dumbEnemy(20, 20, 200, 800, 200,img ,true);
+	dumbEnemy oneem3= new dumbEnemy(20, 20, 0, 100, 200,img ,false);
 	private OrthographicCamera camera;
 	private Viewport viewport;
 	private int moveSpeed;
-	private int emenymovement;
-	Rectangle box2;
+
 	Rectangle box;
 	private Array<Rectangle> bullets;
+	private Array<Rectangle> walls;
 	private int bulletSpeed;
 	 double bulletVelX;
 	 double bulletVelY;
 	 int timeSeconds = 0;
 	 int period = 1;
-	private Rectangle wall;
+	private Rectangle collisionChecker;
 	TiledMap tiledMap;
-	Map map;
+
 	TiledMapRenderer tiledMapRenderer;
+	int ymove;
+	int xmove;
 private int wallsize;
 
 
 
 Texture img2;
 //XG: collision stuff(still testing)
-	MapObjects objects;
+	MapObjects StaticObjects;
 
 
 	//camera.position.set(x, y)
 	@Override
 	public void create () {
-		/* oneem= new dumbenmey(20, 20, 0, 600, 200,img ,true);
-		 oneem1=ew dumbenmey(20, 20, 100, 600, 200,img ,false);
-		 oneem2=  dumbenmey(20, 20, 200, 800, 200,img ,true);
-		 oneem3=  dumbenmey(20, 20, 0, 100, 200,img ,false);
+		/* oneem= new dumbEnemy(20, 20, 0, 600, 200,img ,true);
+		 oneem1=ew dumbEnemy(20, 20, 100, 600, 200,img ,false);
+		 oneem2=  dumbEnemy(20, 20, 200, 800, 200,img ,true);
+		 oneem3=  dumbEnemy(20, 20, 0, 100, 200,img ,false);
 		 */
 
-		map = tiledMap;
+
  box =new Rectangle(200,540,100,100);
 		camera = new OrthographicCamera();
-		camera.setToOrtho(false, 1000, 1000);
+		camera.setToOrtho(false, 300, 300);
 		// XG: not entirely certain how this works, but what it does is set the viewport to a certain aspect-ratio
 		// XG: so that distortion effect doesn't happen anymore. We might have to edit some stuff later so that
 		// XG: everything in our game runs on the same world coordinate system. Also, maybe shrink the whole game
 		// XG: so we're not using such large values. That's what the wiki advises at least.
-		viewport = new FitViewport(1000, 1000, camera);
+		viewport = new FitViewport(300, 300, camera);
 		batch = new SpriteBatch();
 		img = new Texture("badlogic.jpg");
 		img2 = new Texture("badlogic.jpg");
 		ime = new Texture ("badlogic.jpg");
 		bul = new Texture("Bullet.png");
-		bg = new Texture("Background1.png");
+
 		//image2 size needs to be set
 		//XG: creates the player and sets their attributes.
-		emey = new Rectangle();
+		enemy = new Rectangle();
 		player = new Rectangle();
+		collisionChecker = new Rectangle(123, 123, 123, 123);
+		StaticObjects = new MapObjects();
 		player.x = 20;
 		player.y = 20;
-		emey.x = 20;
-		emey.y = 20;
-		emey.width = 32;
-		emey.height = 32;
+		enemy.x = 20;
+		enemy.y = 20;
+		enemy.width = 32;
+		enemy.height = 32;
 		player.width = 32;
 		player.height = 32;
+		collisionChecker = new Rectangle(player.x, player.y, player.width, player.height);
 		moveSpeed = 100;
-		emenymovement = 100;
+
 		bulletSpeed = 400;
 		//XG: sets the camera to the players location
 		camera.position.x = player.x;
@@ -141,17 +140,22 @@ Texture img2;
 		bullets = new Array<Rectangle>();
 		tiledMap = new TmxMapLoader().load("SampleMap.tmx");
 		tiledMapRenderer = new OrthogonalTiledMapRenderer(tiledMap);
-		map = tiledMap;
-		objects = new MapObjects();
-		int objectLayerId = 2;
+		ymove=0;
+		xmove=0;
+		Gdx.app.log("OMG", "IT WORKS!"+  moveSpeed * Gdx.graphics.getDeltaTime());
 
-		TiledMapTileLayer collisionObjectLayer = (TiledMapTileLayer)map.getLayers().get(objectLayerId);
-		 objects = collisionObjectLayer.getObjects();
+//XG: I have done it. I have found a way to import objects from the Tiled object layer into the game. This will make
+//XG: creating levels  in the future much easier. The method is simple.
+//XG: The following code pulls all of the objects from the correct layer and puts them into a list of map objects. I was
+//XG: using the correct approach the whole time. There was merely a small formatting error.
+//XG: The following method is in fact slightly less complicated than the various other ones I have tried that have
+//XG: been failing me for the past week, and preventing me from making any further progress on this project.
+//XG: I am filled with rage. I must go lie down now.
+
+//XG: After a few moments of reflection, I have decided that while I don't hate Java, Java clearly despises me.
 
 
-
-
-wall = new Rectangle(10,20,10000,10000);
+		StaticObjects = tiledMap.getLayers().get("CollisionLayer").getObjects();
 	}
 	
 	// XG: libGDX measures everything from its bottom-left corner, so the two methods below account for that
@@ -170,46 +174,68 @@ wall = new Rectangle(10,20,10000,10000);
 		bullet.width = bullet.height = 64;
 		//XG: spawns the bullet at the center of the player, and now also accounts for the bullets own size!
 		bullet.x = xOrigin()-bullet.width/2;
-		bullet.y = yOrigin()-bullet.width/2;
+		bullet.y = yOrigin()-bullet.height/2;
 		//XG: adds the bullet to the 'bullets' list. Why do we need this list again?
 		bullets.add(bullet);
 	}
 
+	//XG: Gentlemen and other gentleman, we have collision! Once I manageged to get the objects imported succsessfully
+	//XG: it was honestly laughably easy to implement. There is a bug where holding against a wall in one direction will
+	//XG: keep you from moving a different direction, but it's pretty small and we can fix it later on down the line.
+
+	public boolean collisionCheck(float x, float y){
+		collisionChecker.x=x;
+		collisionChecker.y=y;
+				for (RectangleMapObject rectangleObject : StaticObjects.getByType(RectangleMapObject.class)) {
+
+					Rectangle wall = rectangleObject.getRectangle();
+					if (Intersector.overlaps(wall, collisionChecker)) {
+						return true;
+						//insert collision here
+					}
+				}
+		return false;
+	}
+
+
+
 	@Override
 	public void render () {
+		Vector2 pl = new Vector2(player.x, player.y);
 
-Vector2 playerLocation = new Vector2(player.x, player.y);
 
 
-		Gdx.app.log("COUNT:", ":" +objects.getCount());
-		//Gdx.app.log("Count", "Object count:"+ collisionObjectLayer.getObjects().getCount());
-		for (RectangleMapObject rectangleObject : objects.getByType(RectangleMapObject.class)) {
 
-			Rectangle rectangle = rectangleObject.getRectangle();
-			if (Intersector.overlaps(rectangle, player)) {
-				Gdx.app.log("OMG", "IT WORKS!");
+
+
+		for (RectangleMapObject rectangleObject : StaticObjects.getByType(RectangleMapObject.class)) {
+
+			Rectangle wall = rectangleObject.getRectangle();
+			if (Intersector.overlaps(wall, player)) {
+				Gdx.app.log("OMG", "IT WORKS!"+  moveSpeed * Gdx.graphics.getDeltaTime());
+				//insert collision here
 			}
 		}
 
 
-// there are several other types, Rectangle is probably the most common one
 
 
-		/*if(player.y - emey.y < 20)  Gdx.app.log("MyTag", "my informative message"); ;
-		if(player.y + emey.y > 50) Gdx.app.log("MyTag", "my informative message"); // hey it ahmed  create() restart the game
-		if(player.x +emey.x < 0)  Gdx.app.log("MyTag", "my informative message");
-		if(player.x - emey.x > 50)
 
-if (emey.x<200) {
+		/*if(player.y - enemy.y < 20)  Gdx.app.log("MyTag", "my informative message"); ;
+		if(player.y + enemy.y > 50) Gdx.app.log("MyTag", "my informative message"); // hey it ahmed  create() restart the game
+		if(player.x +enemy.x < 0)  Gdx.app.log("MyTag", "my informative message");
+		if(player.x - enemy.x > 50)
 
-			emey.x += emenymovement * Gdx.graphics.getDeltaTime();
+if (enemy.x<200) {
+
+			enemy.x += emenymovement * Gdx.graphics.getDeltaTime();
 			//Gdx.app.log("MyTag", "ENMEY IS MOVEING");
 			//camera.position.x = player.x;
 		}
-		if(emey.x ==0)
-			if(emey.x ==200)
-		 if (emey.x>0) {
-			emey.x -= emenymovement * Gdx.graphics.getDeltaTime();
+		if(enemy.x ==0)
+			if(enemy.x ==200)
+		 if (enemy.x>0) {
+			enemy.x -= emenymovement * Gdx.graphics.getDeltaTime();
 			//Gdx.app.log("MyTag", "ENMEY IS MOVEING");
 			//camera.position.x = player.x;
 		}*/
@@ -233,7 +259,7 @@ if (emey.x<200) {
 		//XG: unclear on its capabilities and limitations at the moment.
 		batch.begin();
 		//XG: draws the wall at specified coordinates. Doesn't set its size.
-		batch.draw(img, wall.x, wall.y);
+
 		batch.draw(img, oneem.posx(), oneem.posy());
 		batch.draw(img, oneem1.posx(), oneem1.posy());
 		batch.draw(img, oneem2.posx(), oneem2.posy());
@@ -252,25 +278,25 @@ if (emey.x<200) {
 		//XG: the following code moves the player according to inputs. Works with both arrow keys and WASD.
 		//XG: it adds the players movement speed to their x/y value, so you can currently move much faster
 		//XG: if the player is moving diagonally.
-		if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)|| Gdx.input.isKeyPressed(Input.Keys.D)) {
-			player.x += moveSpeed * Gdx.graphics.getDeltaTime();
-
-			//camera.position.x = player.x;
-		}
-		if (Gdx.input.isKeyPressed(Input.Keys.LEFT)|| Gdx.input.isKeyPressed(Input.Keys.A)) {
-			player.x -= moveSpeed * Gdx.graphics.getDeltaTime();
-			//camera.position.x = player.x;
-
-		}
 		if (Gdx.input.isKeyPressed(Input.Keys.UP)|| Gdx.input.isKeyPressed(Input.Keys.W)) {
-			player.y += moveSpeed * Gdx.graphics.getDeltaTime();
+			if (!collisionCheck(pl.x, pl.y += moveSpeed * Gdx.graphics.getDeltaTime()))player.y += moveSpeed * Gdx.graphics.getDeltaTime();
 			//camera.position.y = player.y;
 		}
 		if (Gdx.input.isKeyPressed(Input.Keys.DOWN) ||Gdx.input.isKeyPressed(Input.Keys.S)) {
-			player.y -= moveSpeed * Gdx.graphics.getDeltaTime();
+			if (!collisionCheck(pl.x, pl.y -= moveSpeed * Gdx.graphics.getDeltaTime()))player.y -= moveSpeed * Gdx.graphics.getDeltaTime();
 			//camera.position.y = player.y;
 
 		}
+		if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)|| Gdx.input.isKeyPressed(Input.Keys.D)&&(!collisionCheck(pl.x += moveSpeed * Gdx.graphics.getDeltaTime(), pl.y))) {
+			 player.x += moveSpeed * Gdx.graphics.getDeltaTime();
+			//camera.position.x = player.x;
+		}
+		if (Gdx.input.isKeyPressed(Input.Keys.LEFT)|| Gdx.input.isKeyPressed(Input.Keys.A)) {
+			if (!collisionCheck(pl.x -= moveSpeed * Gdx.graphics.getDeltaTime(), pl.y))player.x -= moveSpeed * Gdx.graphics.getDeltaTime();
+			//camera.position.x = player.x;
+
+		}
+
 		if ((Gdx.input.isKeyPressed(Input.Keys.DOWN) ||Gdx.input.isKeyPressed(Input.Keys.S))&&Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT) ) {
 			for(int i =0; i<5; i++) {
 				player.y -= moveSpeed - 5 * Gdx.graphics.getDeltaTime();
@@ -328,18 +354,28 @@ if (emey.x<200) {
 // ended up working??
 // Each of the bullets has their own trajectory now, and I fixed their trajectory so its accurate as well.
 // I have no clue what the next line of code does. If either of you could figure it out I would be grateful.
+		//XG: There's a recurring bug where spawning bullets can randomly cause a crash. No idea why yet.
 
 		for (Array.ArrayIterator<Rectangle> iter = bullets.iterator(); iter.hasNext(); ) {
 			bullet bullet = (com.mygdx.game.bullet) iter.next();
 			// sets the bullets to go forward in the right direction. Now works 100% correctly!
-			bullet.y += bullet.getVelY()* Gdx.graphics.getDeltaTime();
-			bullet.x += bullet.getVelX()* Gdx.graphics.getDeltaTime();
-			// deletes the bullets if it reaches the set bounds.
-			// There's a small bug where if you go too far past those bounds and try to shoot, the game crashes.
 			if(bullet.y < 0) iter.remove();
 			if(bullet.y > 5000) iter.remove();
 			if(bullet.x < 0) iter.remove();
 			if(bullet.x > 5000) iter.remove();
+
+			for (RectangleMapObject rectangleObject : StaticObjects.getByType(RectangleMapObject.class)) {
+
+				Rectangle wall = rectangleObject.getRectangle();
+				if (Intersector.overlaps(wall, bullet)) {
+					iter.remove();
+					//insert collision here
+				}
+			}
+			bullet.y += bullet.getVelY()* Gdx.graphics.getDeltaTime();
+			bullet.x += bullet.getVelX()* Gdx.graphics.getDeltaTime();
+			// deletes the bullets if it reaches the set bounds.
+			// There's a small bug where if you go too far past those bounds and try to shoot, the game crashes.
 
 			/*float temp =timeSeconds ;
 			if(temp> period){
@@ -349,16 +385,16 @@ if (emey.x<200) {
 
 
 		}
-//XG: So we need to dispose some of our assets, or we get a memory leak. So if we can dispose something
-//XG: here, we should
+//XG: So we need to dispose some of our assets, or we get a memory leak (don't know what that is but it sounds bad
+//XG: So if we can dispose something here, we should.
 	@Override
 	public void dispose () {
 		batch.dispose();
 		img.dispose();
-		bg.dispose();
 		bul.dispose();
 		tiledMap.dispose();
 		img2.dispose();
+		ime.dispose();
 	}
 	//XG: The resize thing makes it so our screen no longer gets distorted when we change the window size.
 	@Override
