@@ -59,7 +59,7 @@ public class CSAGame extends ApplicationAdapter {
 	Texture bul;
 	private Rectangle player;
 	private Rectangle enemy;
-	dumbEnemy oneem= new dumbEnemy(20, 20, 0, 600, 20,img ,true);
+	dumbEnemy oneem= new dumbEnemy(20, 20, 0, 600, 100,img ,true);
 	dumbEnemy oneem1= new dumbEnemy(20, 20, 100, 600, 200,img ,false);
 	dumbEnemy oneem2= new dumbEnemy(20, 20, 200, 800, 200,img ,true);
 	dumbEnemy oneem3= new dumbEnemy(20, 20, 0, 100, 200,img ,false);
@@ -82,6 +82,8 @@ public class CSAGame extends ApplicationAdapter {
 	int ymove;
 	int xmove;
 	int health;
+	//XG: determines how much damage the player does to enemies.
+	int damage;
 private Animate anm= new Animate();
 
 
@@ -122,6 +124,7 @@ anm.create();
 		StaticObjects = new MapObjects();
 		player.x = 20;
 		player.y = 20;
+		health = 5;
 		enemy.x = 20;
 		enemy.y = 20;
 		enemy.width = 32;
@@ -130,6 +133,7 @@ anm.create();
 		player.height = 32;
 		collisionChecker = new Rectangle(player.x, player.y, player.width, player.height);
 		moveSpeed = 100;
+		damage = 1;
 
 		bulletSpeed = 400;
 		//XG: sets the camera to the players location
@@ -205,53 +209,51 @@ anm.create();
 //render(player.x,player.y);
 
 
-
-
-
 		for (RectangleMapObject rectangleObject : StaticObjects.getByType(RectangleMapObject.class)) {
 
 			Rectangle wall = rectangleObject.getRectangle();
 			if (Intersector.overlaps(wall, player)) {
-				Gdx.app.log("OMG", "IT WORKS!"+  moveSpeed * Gdx.graphics.getDeltaTime());
+				Gdx.app.log("OMG", "IT WORKS!" + moveSpeed * Gdx.graphics.getDeltaTime());
 				//insert collision here
 			}
 		}
 
 
+//XG: Makes the enemy walk towards the player. We could make the enemy an instance variable so that we don't have to make
+//XG: a ton of enemy objects. This would be helpful for an endless 'waves' type mode.
+		oneem.attack(xOrigin(), yOrigin());
 
-
-
-		oneem.attack(xOrigin(),yOrigin());
 
 		ScreenUtils.clear(1, 0, 1, 1);
 		//XG: sets the camera to the center of the player, then updates the camera.
 		camera.position.y = yOrigin();
 		camera.position.x = xOrigin();
+
 		//XG: We call the camera to update 3 different times during render. Are any of these unnecessary?
 		//XG: This update is here because otherwise the camera lags slightly behind the player.
 		camera.update();
 		//XG: what does the following code thing do exactly? it says it sets the 'projection matrix' but i'm
 		//XG: unsure what that means. Should we be using the viewport instead of the camera?
 
-tiledMapRenderer.setView(camera);
+		tiledMapRenderer.setView(camera);
 		tiledMapRenderer.render();
 
 		batch.setProjectionMatrix(camera.combined);
-		anm.render(player.x,player.y,player.width,player.height, camera);
+		anm.render(player.x, player.y, player.width, player.height, camera);
 
 		//XG: I think I would like some additional information about the whole 'batch/draw' thing. I'm a little
 		//XG: unclear on its capabilities and limitations at the moment.
-batch.begin();
-		//XG: draws the wall at specified coordinates. Doesn't set its size.
-
-		batch.draw(img, oneem.posx(), oneem.posy(),enemy.width, enemy.height);
+		batch.begin();
+		//XG: draws the enemies at specified coordinates. Doesn't set their size.
+//XG: The following line is a very basic and simple sample of what it might look like if an enemy died.
+//XG: We will need to replace it soon with actual dying.
+		if (oneem.health > 0) batch.draw(img, oneem.posx(), oneem.posy(), enemy.width, enemy.height);
 		batch.draw(img, oneem1.posx(), oneem1.posy());
 		batch.draw(img, oneem2.posx(), oneem2.posy());
 		batch.draw(img, oneem3.posx(), oneem3.posy());
-		//XG: Draws the background using specified values and texture.
-		//batch.draw(bg, 400, 32, 5000, 5000);
+		//XG: very simple way of dealing damage. Will need invincibility frames down the line.
+		if(Intersector.overlaps(enemy,player)){ health-=1;}
 		//XG: Draws the player. Do not set the following values to use the players origin/center.
-
 		//batch.draw(img, player.x, player.y, player.width, player.height);
 		//XG: For each loop that goes through each bullet and draws them.
 		for (Rectangle bullet : bullets) {
@@ -261,30 +263,34 @@ batch.begin();
 		//camera.update();
 
 		batch.end();
+
 		//XG: the following code moves the player according to inputs. Works with both arrow keys and WASD.
 		//XG: it adds the players movement speed to their x/y value, so you can currently move much faster
 		//XG: if the player is moving diagonally.
-		if (Gdx.input.isKeyPressed(Input.Keys.UP)|| Gdx.input.isKeyPressed(Input.Keys.W)) {
-			if (!collisionCheck(pl.x, pl.y += moveSpeed * Gdx.graphics.getDeltaTime()))player.y += moveSpeed * Gdx.graphics.getDeltaTime();
+		if (Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W)) {
+			if (!collisionCheck(pl.x, pl.y += moveSpeed * Gdx.graphics.getDeltaTime()))
+				player.y += moveSpeed * Gdx.graphics.getDeltaTime();
 			//camera.position.y = player.y;
 		}
-		if (Gdx.input.isKeyPressed(Input.Keys.DOWN) ||Gdx.input.isKeyPressed(Input.Keys.S)) {
-			if (!collisionCheck(pl.x, pl.y -= moveSpeed * Gdx.graphics.getDeltaTime()))player.y -= moveSpeed * Gdx.graphics.getDeltaTime();
+		if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.S)) {
+			if (!collisionCheck(pl.x, pl.y -= moveSpeed * Gdx.graphics.getDeltaTime()))
+				player.y -= moveSpeed * Gdx.graphics.getDeltaTime();
 			//camera.position.y = player.y;
 
 		}
-		if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)|| Gdx.input.isKeyPressed(Input.Keys.D)&&(!collisionCheck(pl.x += moveSpeed * Gdx.graphics.getDeltaTime(), pl.y))) {
-			 player.x += moveSpeed * Gdx.graphics.getDeltaTime();
+		if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D) && (!collisionCheck(pl.x += moveSpeed * Gdx.graphics.getDeltaTime(), pl.y))) {
+			player.x += moveSpeed * Gdx.graphics.getDeltaTime();
 			//camera.position.x = player.x;
 		}
-		if (Gdx.input.isKeyPressed(Input.Keys.LEFT)|| Gdx.input.isKeyPressed(Input.Keys.A)) {
-			if (!collisionCheck(pl.x -= moveSpeed * Gdx.graphics.getDeltaTime(), pl.y))player.x -= moveSpeed * Gdx.graphics.getDeltaTime();
+		if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) {
+			if (!collisionCheck(pl.x -= moveSpeed * Gdx.graphics.getDeltaTime(), pl.y))
+				player.x -= moveSpeed * Gdx.graphics.getDeltaTime();
 			//camera.position.x = player.x;
 
 		}
 
-		if ((Gdx.input.isKeyPressed(Input.Keys.DOWN) ||Gdx.input.isKeyPressed(Input.Keys.S))&&Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT) ) {
-			for(int i =0; i<5; i++) {
+		if ((Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.S)) && Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)) {
+			for (int i = 0; i < 5; i++) {
 				player.y -= moveSpeed - 5 * Gdx.graphics.getDeltaTime();
 				//Gdx.app.log("MyTag", "the for works");
 
@@ -292,42 +298,42 @@ batch.begin();
 			//camera.position.y = player.y;
 
 		}
-		if ((Gdx.input.isKeyPressed(Input.Keys.RIGHT)|| Gdx.input.isKeyPressed(Input.Keys.D))&&Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)) {
-			for(int i =0; i<2; i++){
-			player.x += moveSpeed +5* Gdx.graphics.getDeltaTime();
-			//Gdx.app.log("MyTag", "the for works");
+		if ((Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D)) && Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)) {
+			for (int i = 0; i < 2; i++) {
+				player.x += moveSpeed + 5 * Gdx.graphics.getDeltaTime();
+				//Gdx.app.log("MyTag", "the for works");
 			}
 
 			//camera.position.x = player.x;
 		}
-		if ((Gdx.input.isKeyPressed(Input.Keys.LEFT)|| Gdx.input.isKeyPressed(Input.Keys.A) )&&Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)) {
-			for(int i =0; i<5; i++){
-			player.x -= moveSpeed -5* Gdx.graphics.getDeltaTime();
+		if ((Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) && Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)) {
+			for (int i = 0; i < 5; i++) {
+				player.x -= moveSpeed - 5 * Gdx.graphics.getDeltaTime();
 				//Gdx.app.log("MyTag", "the for works");
 			}
 			//camera.position.x = player.x;
 
 		}
-		if ((Gdx.input.isKeyPressed(Input.Keys.UP)|| Gdx.input.isKeyPressed(Input.Keys.W))&&Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT) ) {
+		if ((Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W)) && Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)) {
 
-			for(int i =0; i<10; i++){
-			 player.y += moveSpeed +5* Gdx.graphics.getDeltaTime();
+			for (int i = 0; i < 10; i++) {
+				player.y += moveSpeed + 5 * Gdx.graphics.getDeltaTime();
 				//Gdx.app.log("MyTag", "the for works");
 			}
 			//camera.position.y = player.y;
 		}
-		if(player.y < 0)    create();
-		if(player.y > 5000)   create() ;// hey it ahmed  create() restart the game
-		if(player.x < 0)   create();
-		if(player.x > 5000)  create();
+		if (player.y < 0) create();
+		if (player.y > 5000) create();// hey it ahmed  create() restart the game
+		if (player.x < 0) create();
+		if (player.x > 5000) create();
 		//if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {}
 		//XG: When the screen is clicked, it does some boring math stuff and
-		if(Gdx.input.justTouched()) {
+		if (Gdx.input.justTouched()) {
 			Vector3 touchPos = new Vector3();
 			touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
 			camera.unproject(touchPos);
 			double angle = Math.atan2(touchPos.y - yOrigin(), touchPos.x - xOrigin());
-			bulletVelX= bulletSpeed * cos(angle);
+			bulletVelX = bulletSpeed * cos(angle);
 			bulletVelY = bulletSpeed * sin(angle);
 			fire(bulletVelX, bulletVelY);
 
@@ -344,12 +350,15 @@ batch.begin();
 		//XG: There's a recurring bug where spawning bullets can randomly cause a crash. No idea why yet.
 
 		for (Array.ArrayIterator<Rectangle> iter = bullets.iterator(); iter.hasNext(); ) {
+
+
 			bullet bullet = (com.mygdx.game.bullet) iter.next();
-			// sets the bullets to go forward in the right direction. Now works 100% correctly!
+
 			if(bullet.y < 0) iter.remove();
 			if(bullet.y > 5000) iter.remove();
 			if(bullet.x < 0) iter.remove();
 			if(bullet.x > 5000) iter.remove();
+
 
 			for (RectangleMapObject rectangleObject : StaticObjects.getByType(RectangleMapObject.class)) {
 
@@ -358,9 +367,17 @@ batch.begin();
 					iter.remove();
 					//insert collision here
 				}
+
 			}
-			bullet.y += bullet.getVelY()* Gdx.graphics.getDeltaTime();
-			bullet.x += bullet.getVelX()* Gdx.graphics.getDeltaTime();
+			bullet.y += bullet.getVelY() * Gdx.graphics.getDeltaTime();
+			bullet.x += bullet.getVelX() * Gdx.graphics.getDeltaTime();
+			//XG: For some reason, the following line of code doesn't remove the bullet.
+			if (Intersector.overlaps(enemy, bullet)) {
+				oneem.damage(damage);
+				iter.remove();
+				//insert collision here
+			}
+
 			// deletes the bullets if it reaches the set bounds.
 			// There's a small bug where if you go too far past those bounds and try to shoot, the game crashes.
 
@@ -368,10 +385,10 @@ batch.begin();
 			if(temp> period){
 				timeSeconds -= period;*/
 //  System.exit(0);AM: this to exit the game
-			}
-
-
 		}
+
+
+	}
 //XG: So we need to dispose some of our assets, or we get a memory leak (don't know what that is but it sounds bad
 //XG: So if we can dispose something here, we should.
 	@Override

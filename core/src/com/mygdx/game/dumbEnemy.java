@@ -1,6 +1,7 @@
 package com.mygdx.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 
@@ -18,6 +19,7 @@ private int where1; // this is  the baryer like when it hits this it start to th
    int end ;
     private Rectangle enemy = new Rectangle();
     private int enemyMovement;
+     int health;
     int yes;
     float xOrigin;
     float yOrigin;
@@ -35,6 +37,8 @@ yes =0;
 // replace the following with "enemy width/2" and "enemy height/2" respectively.
      xOrigin = 16;
     yOrigin = 16;
+    //replace the following with an input from the constructor
+    health = 5;
 }
 public dumbEnemy(int x, int y, int l, int w ) {
     enemy.x = x;
@@ -62,6 +66,9 @@ public void attack(float x,float y){
     /*if(Objects.equals(type, "Shoot")){
 
     }*/
+}
+public void damage(int damage){
+    health =-damage;
 }
 public void move() {
     if (uporright) {
@@ -102,18 +109,8 @@ if (!uporright) {
     if (enemy.y<start)
         yes=0;}
 }
-/*    public  void restart(){
 
-if (uporright==false){
-    enemy.y=
 
-}
-if (Intersector.overlaps(wall, bullet)) {
-					iter.remove();
-					//insert collision here
-				}
-    }
-    */
 public float posx(){
     return enemy.x;
 
