@@ -7,13 +7,17 @@ import com.badlogic.gdx.math.Vector3;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 import com.badlogic.gdx.math.Rectangle;
+
+
 public class bullet extends Rectangle {
+
 
 
     private double velX;
     private double velY;
 
     public bullet(double xVel, double yVel){
+
 velX = xVel;
 velY= yVel;
     }
@@ -29,4 +33,5 @@ velY= yVel;
     public double getVelY() {
         return velY;
     }
+
 }

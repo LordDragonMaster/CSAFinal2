@@ -59,7 +59,7 @@ public class CSAGame extends ApplicationAdapter {
 	Texture bul;
 	private Rectangle player;
 	private Rectangle enemy;
-	dumbEnemy oneem= new dumbEnemy(20, 20, 0, 600, 200,img ,true);
+	dumbEnemy oneem= new dumbEnemy(20, 20, 0, 600, 20,img ,true);
 	dumbEnemy oneem1= new dumbEnemy(20, 20, 100, 600, 200,img ,false);
 	dumbEnemy oneem2= new dumbEnemy(20, 20, 200, 800, 200,img ,true);
 	dumbEnemy oneem3= new dumbEnemy(20, 20, 0, 100, 200,img ,false);
@@ -81,8 +81,8 @@ public class CSAGame extends ApplicationAdapter {
 	TiledMapRenderer tiledMapRenderer;
 	int ymove;
 	int xmove;
-private int wallsize;
-
+	int health;
+private Animate anm= new Animate();
 
 
 Texture img2;
@@ -98,7 +98,7 @@ Texture img2;
 		 oneem2=  dumbEnemy(20, 20, 200, 800, 200,img ,true);
 		 oneem3=  dumbEnemy(20, 20, 0, 100, 200,img ,false);
 		 */
-
+anm.create();
 
  box =new Rectangle(200,540,100,100);
 		camera = new OrthographicCamera();
@@ -110,7 +110,7 @@ Texture img2;
 		viewport = new FitViewport(300, 300, camera);
 		batch = new SpriteBatch();
 		img = new Texture("badlogic.jpg");
-		img2 = new Texture("badlogic.jpg");
+		img2 = new Texture("Main_Char_Sprite.png");
 		ime = new Texture ("badlogic.jpg");
 		bul = new Texture("Bullet.png");
 
@@ -202,7 +202,7 @@ Texture img2;
 	@Override
 	public void render () {
 		Vector2 pl = new Vector2(player.x, player.y);
-
+//render(player.x,player.y);
 
 
 
@@ -221,28 +221,8 @@ Texture img2;
 
 
 
-		/*if(player.y - enemy.y < 20)  Gdx.app.log("MyTag", "my informative message"); ;
-		if(player.y + enemy.y > 50) Gdx.app.log("MyTag", "my informative message"); // hey it ahmed  create() restart the game
-		if(player.x +enemy.x < 0)  Gdx.app.log("MyTag", "my informative message");
-		if(player.x - enemy.x > 50)
+		oneem.attack(xOrigin(),yOrigin());
 
-if (enemy.x<200) {
-
-			enemy.x += emenymovement * Gdx.graphics.getDeltaTime();
-			//Gdx.app.log("MyTag", "ENMEY IS MOVEING");
-			//camera.position.x = player.x;
-		}
-		if(enemy.x ==0)
-			if(enemy.x ==200)
-		 if (enemy.x>0) {
-			enemy.x -= emenymovement * Gdx.graphics.getDeltaTime();
-			//Gdx.app.log("MyTag", "ENMEY IS MOVEING");
-			//camera.position.x = player.x;
-		}*/
-		oneem.move();
-		oneem1.move();
-		oneem2.move();
-		oneem3.move();
 		ScreenUtils.clear(1, 0, 1, 1);
 		//XG: sets the camera to the center of the player, then updates the camera.
 		camera.position.y = yOrigin();
@@ -252,28 +232,34 @@ if (enemy.x<200) {
 		camera.update();
 		//XG: what does the following code thing do exactly? it says it sets the 'projection matrix' but i'm
 		//XG: unsure what that means. Should we be using the viewport instead of the camera?
-		tiledMapRenderer.setView(camera);
+
+tiledMapRenderer.setView(camera);
 		tiledMapRenderer.render();
+
 		batch.setProjectionMatrix(camera.combined);
+		anm.render(player.x,player.y,player.width,player.height, camera);
+
 		//XG: I think I would like some additional information about the whole 'batch/draw' thing. I'm a little
 		//XG: unclear on its capabilities and limitations at the moment.
-		batch.begin();
+batch.begin();
 		//XG: draws the wall at specified coordinates. Doesn't set its size.
 
-		batch.draw(img, oneem.posx(), oneem.posy());
+		batch.draw(img, oneem.posx(), oneem.posy(),enemy.width, enemy.height);
 		batch.draw(img, oneem1.posx(), oneem1.posy());
 		batch.draw(img, oneem2.posx(), oneem2.posy());
 		batch.draw(img, oneem3.posx(), oneem3.posy());
 		//XG: Draws the background using specified values and texture.
 		//batch.draw(bg, 400, 32, 5000, 5000);
 		//XG: Draws the player. Do not set the following values to use the players origin/center.
-		batch.draw(img, player.x, player.y, player.width, player.height);
+
+		//batch.draw(img, player.x, player.y, player.width, player.height);
 		//XG: For each loop that goes through each bullet and draws them.
 		for (Rectangle bullet : bullets) {
 			batch.draw(bul, bullet.x, bullet.y, bullet.width, bullet.height);
 		}
 		//XG: a second camera update. No notable difference when removed. Commenting it out for now.
 		//camera.update();
+
 		batch.end();
 		//XG: the following code moves the player according to inputs. Works with both arrow keys and WASD.
 		//XG: it adds the players movement speed to their x/y value, so you can currently move much faster
@@ -333,7 +319,7 @@ if (enemy.x<200) {
 		if(player.y < 0)    create();
 		if(player.y > 5000)   create() ;// hey it ahmed  create() restart the game
 		if(player.x < 0)   create();
-		if(player.x > 5000)  create() ;
+		if(player.x > 5000)  create();
 		//if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {}
 		//XG: When the screen is clicked, it does some boring math stuff and
 		if(Gdx.input.justTouched()) {
@@ -344,6 +330,7 @@ if (enemy.x<200) {
 			bulletVelX= bulletSpeed * cos(angle);
 			bulletVelY = bulletSpeed * sin(angle);
 			fire(bulletVelX, bulletVelY);
+
 		}
 
 
@@ -394,6 +381,7 @@ if (enemy.x<200) {
 		bul.dispose();
 		tiledMap.dispose();
 		img2.dispose();
+anm.dispose();
 		ime.dispose();
 	}
 	//XG: The resize thing makes it so our screen no longer gets distorted when we change the window size.
