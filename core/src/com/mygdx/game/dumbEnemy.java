@@ -17,12 +17,13 @@ private int where1; // this is  the baryer like when it hits this it start to th
    Texture img;
    int start ;
    int end ;
-    private Rectangle enemy = new Rectangle();
+   private Rectangle enemy = new Rectangle();
     private int enemyMovement;
      int health;
     int yes;
     float xOrigin;
     float yOrigin;
+    boolean alive;
     String type = "walk";
     //bullet bullet = (com.mygdx.game.bullet) iter.next();
 public dumbEnemy(int x, int y, int l, int w, int f, Texture look, boolean ur) {
@@ -38,6 +39,7 @@ yes =0;
      xOrigin = 16;
     yOrigin = 16;
     //replace the following with an input from the constructor
+    alive = true;
     health = 5;
 }
 public dumbEnemy(int x, int y, int l, int w ) {
@@ -69,6 +71,13 @@ public void attack(float x,float y){
 }
 public void damage(int damage){
     health =-damage;
+    if (health <= 0){
+        alive = false;
+die();
+    }
+}
+public void die(){
+
 }
 public void move() {
     if (uporright) {

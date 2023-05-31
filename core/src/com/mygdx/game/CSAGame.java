@@ -52,6 +52,8 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 
 import com.badlogic.gdx.maps.MapObject;
 
+import java.util.ArrayList;
+
 public class CSAGame extends ApplicationAdapter {
 	SpriteBatch batch;
 	Texture img;
@@ -85,6 +87,7 @@ public class CSAGame extends ApplicationAdapter {
 	//XG: determines how much damage the player does to enemies.
 	int damage;
 private Animate anm= new Animate();
+	private Animate anm2= new Animate();
 
 
 Texture img2;
@@ -100,8 +103,8 @@ Texture img2;
 		 oneem2=  dumbEnemy(20, 20, 200, 800, 200,img ,true);
 		 oneem3=  dumbEnemy(20, 20, 0, 100, 200,img ,false);
 		 */
-anm.create();
-
+anm.create(new Texture("Main_Char_Sprite.png"),4,3, 0.1f);
+		anm2.create(new Texture("BugAnim.png"),3,2, 0.2f);
  box =new Rectangle(200,540,100,100);
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, 300, 300);
@@ -142,6 +145,7 @@ anm.create();
 		camera.update();
 		//XG: Creates the 'bullets' array.
 		bullets = new Array<Rectangle>();
+		//ArrayList<dumbEnemy> enemies = new ArrayList<dumbEnemy>();
 		tiledMap = new TmxMapLoader().load("SampleMap.tmx");
 		tiledMapRenderer = new OrthogonalTiledMapRenderer(tiledMap);
 		ymove=0;
@@ -222,6 +226,9 @@ anm.create();
 //XG: Makes the enemy walk towards the player. We could make the enemy an instance variable so that we don't have to make
 //XG: a ton of enemy objects. This would be helpful for an endless 'waves' type mode.
 		oneem.attack(xOrigin(), yOrigin());
+		oneem1.attack(xOrigin(), yOrigin());
+		oneem2.attack(xOrigin(), yOrigin());
+		oneem3.attack(xOrigin(), yOrigin());
 
 
 		ScreenUtils.clear(1, 0, 1, 1);
@@ -240,6 +247,10 @@ anm.create();
 
 		batch.setProjectionMatrix(camera.combined);
 		anm.render(player.x, player.y, player.width, player.height, camera);
+		anm2.render(oneem.posx(), oneem.posy(), enemy.width, enemy.height, camera);
+		anm2.render(oneem1.posx(), oneem1.posy(), enemy.width, enemy.height, camera);
+		anm2.render(oneem2.posx(), oneem2.posy(), enemy.width, enemy.height, camera);
+		anm2.render(oneem3.posx(), oneem3.posy(), enemy.width, enemy.height, camera);
 
 		//XG: I think I would like some additional information about the whole 'batch/draw' thing. I'm a little
 		//XG: unclear on its capabilities and limitations at the moment.
@@ -248,9 +259,9 @@ anm.create();
 //XG: The following line is a very basic and simple sample of what it might look like if an enemy died.
 //XG: We will need to replace it soon with actual dying.
 		if (oneem.health > 0) batch.draw(img, oneem.posx(), oneem.posy(), enemy.width, enemy.height);
-		batch.draw(img, oneem1.posx(), oneem1.posy());
-		batch.draw(img, oneem2.posx(), oneem2.posy());
-		batch.draw(img, oneem3.posx(), oneem3.posy());
+
+		/*batch.draw(img, oneem2.posx(), oneem2.posy());
+		batch.draw(img, oneem3.posx(), oneem3.posy());*/
 		//XG: very simple way of dealing damage. Will need invincibility frames down the line.
 		if(Intersector.overlaps(enemy,player)){ health-=1;}
 		//XG: Draws the player. Do not set the following values to use the players origin/center.
