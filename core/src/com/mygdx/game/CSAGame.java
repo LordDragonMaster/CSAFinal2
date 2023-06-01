@@ -21,7 +21,9 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 //XG: Used to track inputs. (keyboard, mouse, etc) Fairly self explanatory.
 import com.badlogic.gdx.Input;
-
+import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 //XG: Allows us to use textures. Self-explanatory.
 import com.badlogic.gdx.graphics.Texture;
@@ -54,7 +56,16 @@ import com.badlogic.gdx.maps.MapObject;
 
 import java.util.ArrayList;
 
-public class CSAGame extends ApplicationAdapter {
+public class CSAGame extends ApplicationAdapter implements Screen {
+	private Manager parent; // a field to store our orchestrator
+
+	// our constructor with a Box2DTutorial argument
+	public CSAGame(Manager manager){
+		parent = manager;     // setting the argument to our field.
+		create();
+	}
+	public int heath =100;
+	public int bulits= 5;
 	SpriteBatch batch;
 	Texture img;
 	Texture ime;
@@ -68,10 +79,12 @@ public class CSAGame extends ApplicationAdapter {
 	private OrthographicCamera camera;
 	private Viewport viewport;
 	private int moveSpeed;
+	private Music music;
+	private Sound sound;
 
 	Rectangle box;
 	private Array<Rectangle> bullets;
-	private Array<Rectangle> walls;
+	private Array<dumbEnemy> enemies;
 	private int bulletSpeed;
 	 double bulletVelX;
 	 double bulletVelY;
@@ -103,6 +116,10 @@ Texture img2;
 		 oneem2=  dumbEnemy(20, 20, 200, 800, 200,img ,true);
 		 oneem3=  dumbEnemy(20, 20, 0, 100, 200,img ,false);
 		 */
+		//Sound sound = Gdx.audio.newSound(Gdx.files.internal("Battle-Dawn_loop.ogg"));
+
+		//long id
+
 anm.create(new Texture("Main_Char_Sprite.png"),4,3, 0.1f);
 		anm2.create(new Texture("BugAnim.png"),3,2, 0.2f);
  box =new Rectangle(200,540,100,100);
@@ -145,6 +162,7 @@ anm.create(new Texture("Main_Char_Sprite.png"),4,3, 0.1f);
 		camera.update();
 		//XG: Creates the 'bullets' array.
 		bullets = new Array<Rectangle>();
+		enemies = new Array<dumbEnemy>();
 		//ArrayList<dumbEnemy> enemies = new ArrayList<dumbEnemy>();
 		tiledMap = new TmxMapLoader().load("SampleMap.tmx");
 		tiledMapRenderer = new OrthogonalTiledMapRenderer(tiledMap);
@@ -187,7 +205,8 @@ anm.create(new Texture("Main_Char_Sprite.png"),4,3, 0.1f);
 		bullets.add(bullet);
 	}
 
-	//XG: Gentlemen and other gentleman, we have collision! Once I manageged to get the objects imported succsessfully
+
+	//XG: Gentlemen and other gentleman, we have collision! Once I managed to get the objects imported successfully
 	//XG: it was honestly laughably easy to implement. There is a bug where holding against a wall in one direction will
 	//XG: keep you from moving a different direction, but it's pretty small and we can fix it later on down the line.
 
@@ -208,7 +227,7 @@ anm.create(new Texture("Main_Char_Sprite.png"),4,3, 0.1f);
 
 
 	@Override
-	public void render () {
+	public void render (float delta) {
 		Vector2 pl = new Vector2(player.x, player.y);
 //render(player.x,player.y);
 
@@ -339,7 +358,7 @@ anm.create(new Texture("Main_Char_Sprite.png"),4,3, 0.1f);
 		if (player.x > 5000) create();
 		//if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {}
 		//XG: When the screen is clicked, it does some boring math stuff and
-		if (Gdx.input.justTouched()) {
+		if (Gdx.input.justTouched() && bulits>0) {
 			Vector3 touchPos = new Vector3();
 			touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
 			camera.unproject(touchPos);
@@ -347,6 +366,7 @@ anm.create(new Texture("Main_Char_Sprite.png"),4,3, 0.1f);
 			bulletVelX = bulletSpeed * cos(angle);
 			bulletVelY = bulletSpeed * sin(angle);
 			fire(bulletVelX, bulletVelY);
+			bulits--;
 
 		}
 
@@ -412,9 +432,22 @@ anm.create(new Texture("Main_Char_Sprite.png"),4,3, 0.1f);
 anm.dispose();
 		ime.dispose();
 	}
+
+	@Override
+	public void show() {
+
+	}
+
+
+
 	//XG: The resize thing makes it so our screen no longer gets distorted when we change the window size.
 	@Override
 	public void resize (int width, int height) {
 		viewport.update(width, height);
+	}
+
+	@Override
+	public void hide() {
+
 	}
 }
