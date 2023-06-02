@@ -73,6 +73,7 @@ a single cell containing a button and nothing else. Next we add “table.row().p
         //XG: Causes the buttons to have an effect when pressed.
         exit.addListener(new ChangeListener() {
             //XG: Closes the game
+            //XG: BUG: When you click on this area of the screen in the game section, it still closes the game.
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 Gdx.app.exit();
@@ -83,7 +84,9 @@ a single cell containing a button and nothing else. Next we add “table.row().p
             //XG: Sets the screen to the application.
             @Override
             public void changed(ChangeEvent event, Actor actor) {
+
                 parent.changeScreen(Manager.CSAGAME);
+                dispose();
 
 
             }

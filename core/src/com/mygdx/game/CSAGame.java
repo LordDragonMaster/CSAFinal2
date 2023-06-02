@@ -23,6 +23,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.audio.Music;
+
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 //XG: Allows us to use textures. Self-explanatory.
@@ -30,6 +31,7 @@ import com.badlogic.gdx.graphics.Texture;
 //XG: Draws all our graphic stuff. Don't understand this bit too well at the moment, but it's definitely important
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 		import com.badlogic.gdx.maps.MapObjects;
+import com.badlogic.gdx.maps.objects.EllipseMapObject;
 import com.badlogic.gdx.maps.objects.RectangleMapObject;
 		import com.badlogic.gdx.math.*;
 //XG: We use the rectangle for basically all our objects at the moment. We should probably have our own
@@ -52,8 +54,6 @@ import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 
-import com.badlogic.gdx.maps.MapObject;
-
 import java.util.ArrayList;
 
 public class CSAGame extends ApplicationAdapter implements Screen {
@@ -63,7 +63,9 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 	public CSAGame(Manager manager){
 		parent = manager;     // setting the argument to our field.
 		create();
+
 	}
+
 	public int heath =100;
 	public int bulits= 5;
 	SpriteBatch batch;
@@ -71,11 +73,11 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 	Texture ime;
 	Texture bul;
 	private Rectangle player;
-	private Rectangle enemy;
-	dumbEnemy oneem= new dumbEnemy(20, 20, 0, 600, 100,img ,true);
-	dumbEnemy oneem1= new dumbEnemy(20, 20, 100, 600, 200,img ,false);
-	dumbEnemy oneem2= new dumbEnemy(20, 20, 200, 800, 200,img ,true);
-	dumbEnemy oneem3= new dumbEnemy(20, 20, 0, 100, 200,img ,false);
+	private Rectangle enemyRec;
+	/*dumbEnemy oneem;
+	dumbEnemy oneem1;
+	dumbEnemy oneem2;
+	dumbEnemy oneem3;*/
 	private OrthographicCamera camera;
 	private Viewport viewport;
 	private int moveSpeed;
@@ -84,7 +86,7 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 
 	Rectangle box;
 	private Array<Rectangle> bullets;
-	private Array<dumbEnemy> enemies;
+	private ArrayList<dumbEnemy> enemies;
 	private int bulletSpeed;
 	 double bulletVelX;
 	 double bulletVelY;
@@ -99,29 +101,37 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 	int health;
 	//XG: determines how much damage the player does to enemies.
 	int damage;
-private Animate anm= new Animate();
-	private Animate anm2= new Animate();
+private Animate playerAnimation;
+	private Animate bugAnimation;
 
-
+	int timer = 10;
 Texture img2;
 //XG: collision stuff(still testing)
 	MapObjects StaticObjects;
+	MapObjects EnemySpawns;
 
 
 	//camera.position.set(x, y)
 	@Override
 	public void create () {
+
+
+		playerAnimation = new Animate();
+		 bugAnimation = new Animate();
 		/* oneem= new dumbEnemy(20, 20, 0, 600, 200,img ,true);
 		 oneem1=ew dumbEnemy(20, 20, 100, 600, 200,img ,false);
 		 oneem2=  dumbEnemy(20, 20, 200, 800, 200,img ,true);
 		 oneem3=  dumbEnemy(20, 20, 0, 100, 200,img ,false);
 		 */
-		//Sound sound = Gdx.audio.newSound(Gdx.files.internal("Battle-Dawn_loop.ogg"));
+		//Music music = Gdx.audio.newMusic(Gdx.files.internal("in_the_element.wav"));
 
-		//long id
+		//start playing music
+		//music.setVolume(0.5f);
+		//music.setLooping(true);
+		//music.play();
 
-anm.create(new Texture("Main_Char_Sprite.png"),4,3, 0.1f);
-		anm2.create(new Texture("BugAnim.png"),3,2, 0.2f);
+playerAnimation.create(new Texture("Main_Char_Sprite.png"),4,3, 0.1f);
+		bugAnimation.create(new Texture("BugAnim.png"),3,2, 0.2f);
  box =new Rectangle(200,540,100,100);
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false, 300, 300);
@@ -138,23 +148,27 @@ anm.create(new Texture("Main_Char_Sprite.png"),4,3, 0.1f);
 
 		//image2 size needs to be set
 		//XG: creates the player and sets their attributes.
-		enemy = new Rectangle();
+		enemyRec = new Rectangle();
 		player = new Rectangle();
 		collisionChecker = new Rectangle(123, 123, 123, 123);
 		StaticObjects = new MapObjects();
+		EnemySpawns = new MapObjects();
 		player.x = 20;
 		player.y = 20;
 		health = 5;
-		enemy.x = 20;
-		enemy.y = 20;
-		enemy.width = 32;
-		enemy.height = 32;
+		enemyRec.x = 20;
+		enemyRec.y = 20;
+		enemyRec.width = 32;
+		enemyRec.height = 32;
 		player.width = 32;
 		player.height = 32;
 		collisionChecker = new Rectangle(player.x, player.y, player.width, player.height);
 		moveSpeed = 100;
 		damage = 1;
-
+	/*	oneem= new dumbEnemy(20, 20, 0, 600, 100,img ,true);
+		oneem1= new dumbEnemy(20, 20, 100, 600, 200,img ,false);
+		oneem2= new dumbEnemy(20, 20, 200, 800, 200,img ,true);
+		oneem3= new dumbEnemy(20, 20, 0, 100, 200,img ,false);*/
 		bulletSpeed = 400;
 		//XG: sets the camera to the players location
 		camera.position.x = player.x;
@@ -162,13 +176,23 @@ anm.create(new Texture("Main_Char_Sprite.png"),4,3, 0.1f);
 		camera.update();
 		//XG: Creates the 'bullets' array.
 		bullets = new Array<Rectangle>();
-		enemies = new Array<dumbEnemy>();
+		enemies = new ArrayList<dumbEnemy>();
 		//ArrayList<dumbEnemy> enemies = new ArrayList<dumbEnemy>();
 		tiledMap = new TmxMapLoader().load("SampleMap.tmx");
 		tiledMapRenderer = new OrthogonalTiledMapRenderer(tiledMap);
 		ymove=0;
 		xmove=0;
 		Gdx.app.log("OMG", "IT WORKS!"+  moveSpeed * Gdx.graphics.getDeltaTime());
+
+		EnemySpawns = tiledMap.getLayers().get("Enemy Spawns").getObjects();
+		Gdx.app.log("OMG", "IT WORKS!"+  EnemySpawns.getCount());
+		for (EllipseMapObject circleObject : EnemySpawns.getByType(EllipseMapObject.class)) {
+
+			Ellipse enemySpawn = circleObject.getEllipse();
+			dumbEnemy enemy = new dumbEnemy(enemySpawn.x, enemySpawn.y, 30);
+			enemies.add(enemy);
+
+		}
 
 //XG: I have done it. I have found a way to import objects from the Tiled object layer into the game. This will make
 //XG: creating levels  in the future much easier. The method is simple.
@@ -229,25 +253,6 @@ anm.create(new Texture("Main_Char_Sprite.png"),4,3, 0.1f);
 	@Override
 	public void render (float delta) {
 		Vector2 pl = new Vector2(player.x, player.y);
-//render(player.x,player.y);
-
-
-		for (RectangleMapObject rectangleObject : StaticObjects.getByType(RectangleMapObject.class)) {
-
-			Rectangle wall = rectangleObject.getRectangle();
-			if (Intersector.overlaps(wall, player)) {
-				Gdx.app.log("OMG", "IT WORKS!" + moveSpeed * Gdx.graphics.getDeltaTime());
-				//insert collision here
-			}
-		}
-
-
-//XG: Makes the enemy walk towards the player. We could make the enemy an instance variable so that we don't have to make
-//XG: a ton of enemy objects. This would be helpful for an endless 'waves' type mode.
-		oneem.attack(xOrigin(), yOrigin());
-		oneem1.attack(xOrigin(), yOrigin());
-		oneem2.attack(xOrigin(), yOrigin());
-		oneem3.attack(xOrigin(), yOrigin());
 
 
 		ScreenUtils.clear(1, 0, 1, 1);
@@ -265,24 +270,23 @@ anm.create(new Texture("Main_Char_Sprite.png"),4,3, 0.1f);
 		tiledMapRenderer.render();
 
 		batch.setProjectionMatrix(camera.combined);
-		anm.render(player.x, player.y, player.width, player.height, camera);
-		anm2.render(oneem.posx(), oneem.posy(), enemy.width, enemy.height, camera);
+		playerAnimation.render(player.x, player.y, player.width, player.height, camera);
+		for (dumbEnemy enemy2 : enemies){
+
+			enemy2.attack(xOrigin(),yOrigin());
+			bugAnimation.render(enemy2.posx(), enemy2.posy(), enemyRec.width, enemyRec.height, camera);
+		}
+		/*anm2.render(oneem.posx(), oneem.posy(), enemy.width, enemy.height, camera);
 		anm2.render(oneem1.posx(), oneem1.posy(), enemy.width, enemy.height, camera);
 		anm2.render(oneem2.posx(), oneem2.posy(), enemy.width, enemy.height, camera);
-		anm2.render(oneem3.posx(), oneem3.posy(), enemy.width, enemy.height, camera);
+		anm2.render(oneem3.posx(), oneem3.posy(), enemy.width, enemy.height, camera);*/
 
 		//XG: I think I would like some additional information about the whole 'batch/draw' thing. I'm a little
 		//XG: unclear on its capabilities and limitations at the moment.
 		batch.begin();
-		//XG: draws the enemies at specified coordinates. Doesn't set their size.
-//XG: The following line is a very basic and simple sample of what it might look like if an enemy died.
-//XG: We will need to replace it soon with actual dying.
-		if (oneem.health > 0) batch.draw(img, oneem.posx(), oneem.posy(), enemy.width, enemy.height);
 
-		/*batch.draw(img, oneem2.posx(), oneem2.posy());
-		batch.draw(img, oneem3.posx(), oneem3.posy());*/
 		//XG: very simple way of dealing damage. Will need invincibility frames down the line.
-		if(Intersector.overlaps(enemy,player)){ health-=1;}
+		if(Intersector.overlaps(enemyRec,player)){ health-=1;}
 		//XG: Draws the player. Do not set the following values to use the players origin/center.
 		//batch.draw(img, player.x, player.y, player.width, player.height);
 		//XG: For each loop that goes through each bullet and draws them.
@@ -318,37 +322,50 @@ anm.create(new Texture("Main_Char_Sprite.png"),4,3, 0.1f);
 			//camera.position.x = player.x;
 
 		}
-
-		if ((Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.S)) && Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)) {
+		if (Gdx.input.isKeyJustPressed(Input.Keys.R) ) {
+			dispose();
+			create();
+			//camera.position.x = player.x;
+		}
+		if (((Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.S)) && Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT))&&timer>0) {
 			for (int i = 0; i < 5; i++) {
-				player.y -= moveSpeed - 5 * Gdx.graphics.getDeltaTime();
+				player.y -=   moveSpeed- 5 * Gdx.graphics.getDeltaTime();
+				timer -=Gdx.graphics.getDeltaTime();
 				//Gdx.app.log("MyTag", "the for works");
 
 			}
 			//camera.position.y = player.y;
 
 		}
-		if ((Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D)) && Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)) {
+		if (((Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D)) && Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT))&&timer>0) {
 			for (int i = 0; i < 2; i++) {
-				player.x += moveSpeed + 5 * Gdx.graphics.getDeltaTime();
+				player.x += moveSpeed+ 5 * Gdx.graphics.getDeltaTime();
+				timer -=Gdx.graphics.getDeltaTime();
+
 				//Gdx.app.log("MyTag", "the for works");
 			}
+			if (!Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) && timer < 10){}
+				for (int i =0;i< 9; i++){
+					timer +=Gdx.graphics.getDeltaTime();
+				}
 
 			//camera.position.x = player.x;
 		}
-		if ((Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) && Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)) {
+		if (((Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) && Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT))&&timer>0) {
 			for (int i = 0; i < 5; i++) {
-				player.x -= moveSpeed - 5 * Gdx.graphics.getDeltaTime();
+				player.x -=  moveSpeed- 5 * Gdx.graphics.getDeltaTime();
+				timer -=Gdx.graphics.getDeltaTime();
 				//Gdx.app.log("MyTag", "the for works");
 			}
 			//camera.position.x = player.x;
 
 		}
-		if ((Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W)) && Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT)) {
+		if (((Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W)) && Gdx.input.isKeyJustPressed(Input.Keys.SHIFT_LEFT))&&timer>0) {
 
 			for (int i = 0; i < 10; i++) {
-				player.y += moveSpeed + 5 * Gdx.graphics.getDeltaTime();
+				player.y += moveSpeed+ 5 * Gdx.graphics.getDeltaTime();
 				//Gdx.app.log("MyTag", "the for works");
+				timer -=Gdx.graphics.getDeltaTime();
 			}
 			//camera.position.y = player.y;
 		}
@@ -379,7 +396,7 @@ anm.create(new Texture("Main_Char_Sprite.png"),4,3, 0.1f);
 // Each of the bullets has their own trajectory now, and I fixed their trajectory so its accurate as well.
 // I have no clue what the next line of code does. If either of you could figure it out I would be grateful.
 		//XG: There's a recurring bug where spawning bullets can randomly cause a crash. No idea why yet.
-
+//		for (Array.ArrayIterator<Rectangle> iter = bullets.iterator(); iter.hasNext();)
 		for (Array.ArrayIterator<Rectangle> iter = bullets.iterator(); iter.hasNext(); ) {
 
 
@@ -403,8 +420,8 @@ anm.create(new Texture("Main_Char_Sprite.png"),4,3, 0.1f);
 			bullet.y += bullet.getVelY() * Gdx.graphics.getDeltaTime();
 			bullet.x += bullet.getVelX() * Gdx.graphics.getDeltaTime();
 			//XG: For some reason, the following line of code doesn't remove the bullet.
-			if (Intersector.overlaps(enemy, bullet)) {
-				oneem.damage(damage);
+			if (Intersector.overlaps(enemyRec, bullet)) {
+				//enemies.damage(damage);
 				iter.remove();
 				//insert collision here
 			}
@@ -429,7 +446,9 @@ anm.create(new Texture("Main_Char_Sprite.png"),4,3, 0.1f);
 		bul.dispose();
 		tiledMap.dispose();
 		img2.dispose();
-anm.dispose();
+playerAnimation.dispose();
+bugAnimation.dispose();
+//music.dispose();
 		ime.dispose();
 	}
 

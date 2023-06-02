@@ -33,6 +33,7 @@ public class Manager extends Game{
                 break;
             case APPLICATION:
                 if(mainScreen == null) mainScreen = new MainScreen(this); //added (this)
+                this.menuScreen.pause();
                 this.setScreen(mainScreen);
                 break;
             case ENDGAME:

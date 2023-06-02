@@ -90,6 +90,7 @@ int index =0;
     public void dispose() {
         batch.dispose();
         spriteSheet.dispose();
+
     }
 }
 
