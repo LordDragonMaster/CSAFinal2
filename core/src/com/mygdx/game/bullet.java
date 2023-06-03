@@ -11,12 +11,12 @@ import com.badlogic.gdx.math.Rectangle;
 
 public class bullet extends Rectangle {
 
-
+private Rectangle bullet;
 
     private double velX;
     private double velY;
 
-    public bullet(double xVel, double yVel){
+    public bullet(double xVel, double yVel, Rectangle bullet){
 
 velX = xVel;
 velY= yVel;

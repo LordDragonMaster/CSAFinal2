@@ -21,42 +21,49 @@ public class dumbEnemy {
     float yOrigin;
     boolean alive;
     String type = "walk";
-public dumbEnemy(float x, float y, int f) {
+public dumbEnemy(float x, float y, int f, int h, int w, int l, String t) {
     enemy.x = x;
     enemy.y = y;
-
+    enemy.height = l;
+ enemy.width = w;
     enemyMovement = f;
 
 yes =0;
 // replace the following with "enemy width/2" and "enemy height/2" respectively.
-     xOrigin = 16;
-    yOrigin = 16;
+     xOrigin = enemy.width/2;
+    yOrigin = enemy.height/2;
     //replace the following with an input from the constructor
     alive = true;
-    health = 5;
+    health = h;
+    type=t;
 }
 
 
 
 public void attack(float x,float y){
-    Vector3 playerPos = new Vector3();
-    playerPos.set(x, y, 0);
+    if (alive == true) {
+        Vector3 playerPos = new Vector3();
+        playerPos.set(x, y, 0);
 
-    double angle = Math.atan2(y - enemy.y -yOrigin,x - enemy.x- xOrigin);
-    double enemyVelX= enemyMovement * cos(angle);
-    double enemyVelY = enemyMovement * sin(angle);
-    //fire(enemyVelX, enemyVelY);dddd
-    enemy.y += enemyVelY* Gdx.graphics.getDeltaTime();
-    enemy.x += enemyVelX* Gdx.graphics.getDeltaTime();
+        double angle = Math.atan2(y - enemy.y - yOrigin, x - enemy.x - xOrigin);
+        double enemyVelX = enemyMovement * cos(angle);
+        double enemyVelY = enemyMovement * sin(angle);
+        //fire(enemyVelX, enemyVelY);dddd
+        enemy.y += enemyVelY * Gdx.graphics.getDeltaTime();
+        enemy.x += enemyVelX * Gdx.graphics.getDeltaTime();
     /*if(Objects.equals(type, "Shoot")){
 
     }*/
+    }
 }
+    public Rectangle getRectangle(int damage) {
+    return enemy;
+    }
+
 public void damage(int damage){
-    health =-damage;
+    health -=damage;
     if (health <= 0){
         alive = false;
-die();
     }
 }
 public void die(){
@@ -71,7 +78,10 @@ public float posx(){
         return enemy.y;
 
     }
+    public Rectangle getEnemy(){
+        return enemy;
 
+    }
 
 
 
