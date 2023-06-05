@@ -350,7 +350,7 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		healthBar.setValue(health);
 		ammoText.setText("Ammo: " +ammo);
 		waveText.setText("Wave:  " +wave);
-		livesText.setText("Score: " + lives);
+		livesText.setText("Lives: " + lives);
 
 		ScreenUtils.clear(1, 0, 1, 1);
 		//XG: sets the camera to the center of the player, then updates the camera.
@@ -691,7 +691,7 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		scoreText = new Label("Score: " + points, textStyle);
 		healthBar.setValue(health);
 		scoreText.setText("Score: " + points);
-		livesText.setText("Score: " + lives);
+		livesText.setText("Lives: " + lives);
 		waveText.setText("Wave: " + wave);
 		table.top();
 		table.left();
@@ -709,6 +709,8 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		table.add(scoreText).fillX();
 		table.row();
 		table.add(ammoText).fillX();
+		table.row();
+		table.add(livesText).fillX();
 	}
 	//XG: The resize thing makes it so our screen no longer gets distorted when we change the window size.
 	@Override
