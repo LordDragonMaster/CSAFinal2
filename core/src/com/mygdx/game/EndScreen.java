@@ -14,9 +14,9 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class EndScreen implements Screen{
+   int points;
     private Manager parent; // a field to store our orchestrator
     Stage stage = new Stage(new ScreenViewport());
-
     // our constructor
     public EndScreen(Manager manager){
         parent = manager;     // setting the argument to our field.
@@ -27,17 +27,15 @@ public class EndScreen implements Screen{
 
             stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
             stage.draw();
-
-
-
-
-
     }
+
     @Override
     public void show() {
+        points = parent.getPoints();
         Table table = new Table();
         table.setFillParent(true);
         table.setDebug(true);
+
 
         stage.addActor(table);
         //XG: creates a skin using the imported assets.
@@ -51,10 +49,15 @@ public class EndScreen implements Screen{
         Label.LabelStyle titleStyle = new Label.LabelStyle(titleFont, titleColor);
         Label gameName = new Label("You Lost!",  titleStyle);
         Label exitWords = new Label("Exit the game and restart to play again.",  textStyle);
+        Label pointsNumber = new Label("Final Score: " +points,  titleStyle);
+
 //XG: adds a new button, called 'newGame', to the table.
         table.add(gameName).fillX().uniformX();
         table.row().pad(10, 0, 10, 0);
         table.add(exitWords).fillX().uniformX();
+        table.row().pad(10, 0, 10, 0);
+        table.row();
+        table.add(pointsNumber).fillX().uniformX();
         table.row().pad(10, 0, 10, 0);
         table.row();
         table.add(exit).fillX().uniformX();

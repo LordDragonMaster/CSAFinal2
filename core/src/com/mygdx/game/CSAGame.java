@@ -138,7 +138,7 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 	private int points = 0;
 	//XG: Tracks what wave the player is on.
 	//XG: Sets how much ammo the player has.
-	private int ammo=100;
+	private int ammo=50;
 	//XG: Used to calculate bullet trajectories.
 	double bulletVelX;
 	double bulletVelY;
@@ -394,11 +394,13 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 				enemies.get(i).damage(damage);
 				points+=15;
 				scoreText.setText("Score: "+ points);
+				ammo++;
 			}
 			if (player.overlaps(enemies.get(i).getEnemy()) && !invincible) {
 				health -= 1;
 				if (health <=0){
 					lives-=1;
+					ammo+=50;
 					healthBar.clear();
 
 					health=healthMax;
@@ -416,7 +418,7 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 				if (!enemies.get(i).alive) {
 					enemies.remove(i);
 					if (i > 0) i--;
-					ammo += 5;
+					ammo += 1;
 				}
 			}
 
@@ -640,10 +642,15 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 	}
 	//XG: brings the player to the shop menu. Bugs: Spawns the player on the rectangle where the shop trigger is, doesn't have items yet, creates a new set of UI every time you use it.
 	private void goToShop() {
+			parent.setPoints(points);
 		parent.changeScreen(Manager.SHOP);
 		table.clear();
 	}
+	public int getPoints() {
+		return points;
+	}
 	private void die() {
+		parent.setPoints(points);
 		parent.changeScreen(Manager.ENDGAME);
 		table.clear();
 	}

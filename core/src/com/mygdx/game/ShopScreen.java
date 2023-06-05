@@ -16,7 +16,16 @@ public class ShopScreen implements Screen {
     private Manager parent; // a field to store our orchestrator
 
     Stage stage = new Stage(new ScreenViewport());
+    int points;
+    int pointsSpent;
 
+    public boolean setPoints(int p) {
+        if ((points > p)) {
+            points -= p;
+            return true;
+        }
+        else return false;
+    }
 
     public ShopScreen(Manager manager){
         parent = manager;
@@ -47,17 +56,26 @@ public class ShopScreen implements Screen {
         Label.LabelStyle titleStyle = new Label.LabelStyle(titleFont, titleColor);
         Label.LabelStyle textStyle = new Label.LabelStyle(textFont, titleColor);
         Label menuName = new Label("Shop",  titleStyle);
-        Button buyHealth= new Button(skin);
-        Button buyAmmo= new Button(skin);
-        Button upgradeDamage= new Button(skin);
-        Button upgradeSpeed= new Button(skin);
-        Button upgradeDash= new Button(skin);
-        Button upgradeMaxHealth= new Button(skin);
+        TextButton buyHealth= new TextButton("Refill Health",skin);
+        TextButton buyAmmo= new TextButton("Buy 50 Ammo",skin);
+        TextButton upgradeMaxHealth= new TextButton("Increase Max Health",skin);
+        TextButton upgradeDamage= new TextButton("Increase Damage",skin);
+        TextButton upgradeSpeed= new TextButton("Increase Speed",skin);
+        TextButton upgradeDash= new TextButton("Upgrade Dash",skin);
 //XG: adds a new button, called 'newGame', to the table.
         table.add(menuName).fillX().uniformX();
         table.row().pad(10, 0, 10, 0);
         table.add(startGame).fillX().uniformX();
         table.row().pad(10, 0, 10, 0);
+        table.row();
+        table.add(buyHealth).fillX().uniformX();
+        table.add(buyAmmo).fillX().uniformX();
+        table.row();
+        table.add(upgradeDash).fillX().uniformX();
+        table.add(upgradeSpeed).fillX().uniformX();
+        table.row();
+        table.add(upgradeDamage).fillX().uniformX();
+        table.add(upgradeMaxHealth).fillX().uniformX();
         table.row();
         table.add(exit).fillX().uniformX();
 

@@ -11,6 +11,13 @@ public class Manager extends Game{
     private EndScreen endScreen;
     private CSAGame csaScreen;
     private ShopScreen shopScreen;
+    private int points;
+    private int damageInc;
+    private int maxHealthInc;
+    private boolean refillHealth;
+    private int speedInc;
+    private int dashInc;
+    private int ammoBought;
 
 
     public final static int MENU = 0;
@@ -25,6 +32,25 @@ public class Manager extends Game{
             setScreen(loadingScreen);
 
     }
+    public void setPoints(int p){
+        points=p;
+    }
+    public int getPoints(){
+        return points;
+    }
+    public void setDamageIncupgradeDamage(int d){
+        damageInc+=d;
+    }
+    public void setMaxHealthInc(int d){
+        maxHealthInc+=d;
+    }
+    public void setRefillHealth(boolean t){
+       refillHealth=t;
+    }
+    public void upgradeDamage(int d){
+        damageInc+=d;
+    }
+    //XG: need a 'clear' method
     public void changeScreen(int screen){
         switch(screen){
             case MENU:
