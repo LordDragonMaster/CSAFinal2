@@ -514,6 +514,7 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		camera.update();
 		stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
 		stage.draw();
+		table.setFillParent(true);
 
 
 	}
@@ -722,7 +723,7 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 	//XG: The resize thing makes it so our screen no longer gets distorted when we change the window size.
 	@Override
 	public void resize (int width, int height) {
-
+		stage.getViewport().update(600, 475, true);
 		viewport.update(width, height);
 	}
 

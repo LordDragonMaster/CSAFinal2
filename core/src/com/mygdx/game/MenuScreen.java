@@ -110,6 +110,7 @@ a single cell containing a button and nothing else. Next we add “table.row().p
 
     @Override
     public void resize(int width, int height) {
+
         stage.getViewport().update(width, height, true);
     }
 
