@@ -85,9 +85,16 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		stage.draw();
 		create();
 	}
+	//private Sound damageSound;
+	//private Sound shootSound;
+	//private Sound hitSound;
+	//private Sound dashSound;
+	//private Sound waveCompleteSound;
+//	private Sound deathSound;
 
 	//XG: Just a bunch of UI stuff.
 	ProgressBar healthBar;
+
 	Label ammoText;
 	Label waveText;
 	Label livesText;
@@ -183,8 +190,12 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 	public void create() {
 		Rectangle b = new Rectangle(0, 0, 64, 64);
 		inWave = false;
-
-
+		//damageSound = Gdx.audio.newSound(Gdx.files.internal("data/hurt.wav"));
+		/*hitSound= Gdx.audio.newSound(Gdx.files.internal("data/hit.wav"));
+		shootSound= Gdx.audio.newSound(Gdx.files.internal("data/laserShoot.wav"));
+		dashSound= Gdx.audio.newSound(Gdx.files.internal("data/jump.wav"));
+		deathSound= Gdx.audio.newSound(Gdx.files.internal("data/explosion.wav"));
+		waveCompleteSound= Gdx.audio.newSound(Gdx.files.internal("data/random.wav"));*/
 		playerAnimation = new Animate();
 		bugAnimation = new Animate();
 		//Music music = Gdx.audio.newMusic(Gdx.files.internal("in_the_element.wav"));
@@ -224,7 +235,7 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		player.width = 32;
 		player.height = 32;
 		moveSpeed = 100;
-		damage = 1;
+		damage = 5;
 		bulletSpeed = 400;
 		invincible = false;
 		invinciblePeriod = 700;
@@ -543,6 +554,7 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		}
 		invincible = true;
 		dashFinish = TimeUtils.millis() + dashTime;
+	//	dashSound.play();
 		dashing = true;
 	}
 
@@ -607,6 +619,7 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 	//XG: Ends the wave
 	private void waveEnd() {
 			wave++;
+			health=healthMax;
 			inWave=false;
 	}
 	//XG: Starts the wave
@@ -650,6 +663,11 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 //music.dispose();
 		ime.dispose();
 		stage.dispose();
+	//	dashSound.dispose();
+		//damageSound.dispose();
+		//hitSound.dispose();
+		//deathSound.dispose();
+	//	waveCompleteSound.dispose();
 	}
 
 	@Override
