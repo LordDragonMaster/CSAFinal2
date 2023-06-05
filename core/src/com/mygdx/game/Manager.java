@@ -10,14 +10,14 @@ public class Manager extends Game{
     private MainScreen mainScreen;
     private EndScreen endScreen;
     private CSAGame csaScreen;
+    private ShopScreen shopScreen;
 
 
     public final static int MENU = 0;
     public final static int APPLICATION = 1;
     public final static int CSAGAME = 2;
-
-
     public final static int ENDGAME = 3;
+    public final static int SHOP = 4;
     @Override
     public void create() {
 
@@ -43,8 +43,12 @@ public class Manager extends Game{
            case CSAGAME:
                 if(csaScreen == null) csaScreen = new CSAGame(this);  // added (this)
                 this.setScreen(csaScreen);
-                new CSAGame(this);
                 break;
+            case SHOP:
+                shopScreen = new ShopScreen(this);  // added (this)
+                this.setScreen(shopScreen);
+                break;
+
         }
     }
 }

@@ -37,6 +37,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 //XG: Map objects are used for whatever we import from tiled.
+import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.MapObjects;
 //XG: Used for spawning enemies.
 import com.badlogic.gdx.maps.objects.EllipseMapObject;
@@ -45,8 +46,10 @@ import com.badlogic.gdx.maps.objects.RectangleMapObject;
 //XG: Math sucks. But it gives us our shapes and the intersector and other garbage.
 import com.badlogic.gdx.math.*;
 //XG: Used for the bullet array.
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
 //XG: I got no clue for this one.
 import com.badlogic.gdx.utils.ScreenUtils;
@@ -57,8 +60,6 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 //XG: Used for calculating bullet trajectories. Will likely be reused later on for enemy pathing.
 //XG: I was originally intending to use MathUtils for this but somehow ended up with these instead.
-import static java.lang.Math.cos;
-import static java.lang.Math.sin;
 //XG: The following stuff is what we need in order to use the Tiled map editor for our map.
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
@@ -69,34 +70,42 @@ import java.util.ArrayList;
 //XG: Used for timers and cool-downs.
 import com.badlogic.gdx.utils.TimeUtils;
 
+import static java.lang.Math.*;
+
 public class CSAGame extends ApplicationAdapter implements Screen {
 	//XG: Don't remove the following variable even though intellij tells you safely can.
 	private Manager parent;
 	//XG: Gives the Manager class access to our game. This is what makes our menus work.
-	Stage ui = new Stage(new ScreenViewport());
+	Stage stage = new Stage(new ScreenViewport());
 
 	public CSAGame(Manager manager) {
 		parent = manager;     // setting the argument to our field.
-		Gdx.input.setInputProcessor(ui);
-		ui.act();
-		ui.draw();
+		Gdx.input.setInputProcessor(stage);
+		stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
+		stage.draw();
 		create();
 	}
 
 	//XG: Just a bunch of UI stuff.
 	ProgressBar healthBar;
+	Label ammoText;
+	Label waveText;
+	Label livesText;
 	Skin skin;
 	Table table;
 	BitmapFont textFont;
 	Color titleColor;
 	Label.LabelStyle textStyle;
 	Label healthText;
-
+	Label scoreText;
+	TextButton startWave;
+	TextButton upgradeMenu;
 	SpriteBatch batch;
 	//XG: Creates textures for our images.
 	Texture img;
 	Texture ime;
 	Texture bul;
+	int lives =3;
 
 	private Rectangle enemyRec;
 	//XG: Creates a camera and viewport to display the game properly.
@@ -117,13 +126,13 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 	//XG: Checks if the player is moving
 	private boolean moving;
 	//XG: Sets the speed of the players bullets.
-
 	private int bulletSpeed;
+	//XG: Tracks how many points the player has.
+	private int points = 0;
+	//XG: Tracks what wave the player is on.
 	//XG: Sets how much ammo the player has.
-	private int ammo;
+	private int ammo=100;
 	//XG: Used to calculate bullet trajectories.
-	private int points;
-	//XG: Tracks how many enemies have been killed.
 	double bulletVelX;
 	double bulletVelY;
 	//XG: Serves as a stand-in for the player in order to check if they will be colliding with a wall.
@@ -152,21 +161,29 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 	private int dashSpeed;
 	private float dashYVel;
 	private float dashXVel;
+	private Boolean inWave;
 
 	//XG: Creates animations for the game.
 	private Animate playerAnimation;
 	private Animate bugAnimation;
-
-	int timer = 10;
+	//XG: Tracks the wave the player is currently on.
+	int wave = 1;
 	Texture img2;
-
 	MapObjects StaticObjects;
 	MapObjects EnemySpawns;
 
-	@Override
-	public void create() {
+	RectangleMapObject startWaveButton;
+	RectangleMapObject shopButton;
+	MapObject shopButtonText;
+	MapObject startWaveButtonText;
 
+
+
+		@Override
+	public void create() {
 		Rectangle b = new Rectangle(0, 0, 64, 64);
+		inWave = false;
+
 
 		playerAnimation = new Animate();
 		bugAnimation = new Animate();
@@ -198,16 +215,15 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		EnemySpawns = new MapObjects();
 		//XG: Creates the player and sets their attributes.
 		player = new Rectangle();
-		player.x = 20;
-		player.y = 20;
+		player.x = 870;
+		player.y = 780;
 		healthMax = 5;
 		health = healthMax;
-		points = 0;
+
 		moving = false;
 		player.width = 32;
 		player.height = 32;
 		moveSpeed = 100;
-		ammo = 100;
 		damage = 1;
 		bulletSpeed = 400;
 		invincible = false;
@@ -232,17 +248,6 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		camera.position.y = player.y;
 		camera.update();
 		//XG: Just a bunch of UI stuff.
-		table = new Table();
-		ui.addActor(table);
-		table.setFillParent(true);
-		table.setDebug(true);
-		//XG: creates a skin using the imported assets.
-		skin = new Skin(Gdx.files.internal("pixthuluSkin/pixthulhu-ui.json"));
-		healthBar = new ProgressBar(0, healthMax, 1, false, skin);
-		textFont = new BitmapFont(Gdx.files.internal("pixthuluSkin/font-export.fnt"));
-		titleColor = new Color(100, 0, 0, 1);
-		textStyle = new Label.LabelStyle(textFont, titleColor);
-		healthText = new Label("Health", textStyle);
 
 		//XG: Creates arrays for the things we need those for.
 		bullets = new Array<Rectangle>();
@@ -253,11 +258,13 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		//XG: Spawns enemies at the locations where we've set them to spawn at.
 		EnemySpawns = tiledMap.getLayers().get("Enemy Spawns").getObjects();
 		Gdx.app.log("OMG", "IT WORKS!" + EnemySpawns.getCount());
-		for (EllipseMapObject circleObject : EnemySpawns.getByType(EllipseMapObject.class)) {
-			Ellipse enemySpawn = circleObject.getEllipse();
-			dumbEnemy enemy = new dumbEnemy(enemySpawn.x, enemySpawn.y, 30, 5, 32, 32, "walk");
-			enemies.add(enemy);
-		}
+		startWaveButton = (RectangleMapObject) tiledMap.getLayers().get("Buttons").getObjects().get(0);
+		shopButton = (RectangleMapObject) tiledMap.getLayers().get("Buttons").getObjects().get(1);
+		startWaveButtonText = tiledMap.getLayers().get("Buttons").getObjects().get(2);
+		shopButtonText = tiledMap.getLayers().get("Buttons").getObjects().get(3);
+
+
+
 
 
 //XG: I have done it. I have found a way to import objects from the Tiled object layer into the game. This will make
@@ -299,8 +306,7 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 
 
 	//XG: Gentlemen and other gentleman, we have collision! Once I managed to get the objects imported successfully
-	//XG: it was honestly laughably easy to implement. There is a bug where holding against a wall in one direction will
-	//XG: keep you from moving a different direction, but it's pretty small, and we can fix it later on down the line.
+	//XG: it was honestly laughably easy to implement.
 
 	public boolean collisionCheck(float x, float y) {
 		Rectangle collisionChecker = new Rectangle(x, y, player.width, player.height);
@@ -313,10 +319,10 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		}
 		return true;
 	}
+	//XG: This one is so to address the bug that prevented the player from rubbing against the walls.
 	public boolean collisionCheck2(float x, float y) {
 		Rectangle collisionChecker = new Rectangle(x, player.y, player.width, player.height);
 		for (RectangleMapObject rectangleObject : StaticObjects.getByType(RectangleMapObject.class)) {
-
 			Rectangle wall = rectangleObject.getRectangle();
 			if (Intersector.overlaps(wall, collisionChecker)) {
 				return false;
@@ -327,7 +333,13 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 
 	@Override
 	public void render(float delta) {
+			//XG: This line of code causes the game to spaz out when you die for some reason.
+		if(lives==0){die();}
 		pl.set(player.x, player.y);
+		healthBar.setValue(health);
+		ammoText.setText("Ammo: " +ammo);
+		waveText.setText("Wave:  " +wave);
+		livesText.setText("Score: " + lives);
 
 		ScreenUtils.clear(1, 0, 1, 1);
 		//XG: sets the camera to the center of the player, then updates the camera.
@@ -367,18 +379,36 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		//XG: quite a few hours to find out what the issue was.
 		//XG: Renders the enemies and makes them attack the players.
 		for (int i = 0; i < enemies.size(); i++) {
+			if (player.overlaps(enemies.get(i).getEnemy())&& dashing){
+				enemies.get(i).damage(damage);
+				points+=15;
+				scoreText.setText("Score: "+ points);
+			}
 			if (player.overlaps(enemies.get(i).getEnemy()) && !invincible) {
 				health -= 1;
-				healthBar.setValue(health);
+				if (health <=0){
+					lives-=1;
+					healthBar.clear();
+
+					health=healthMax;
+
+					create();
+				}
+
 				Gdx.app.log("OMG", "IT WORKS!" + TimeUtils.millis());
 				invincibility();
 			}
-			enemies.get(i).attack(xOrigin(), yOrigin());
-			bugAnimation.render(enemies.get(i).posx(), enemies.get(i).posy(), enemyRec.width, enemyRec.height, camera);
-			if (!enemies.get(i).alive) {
-				enemies.remove(i);
-				if (i > 0) i--;
+
+			if(enemies.size()>0) {
+				enemies.get(i).attack(xOrigin(), yOrigin());
+				bugAnimation.render(enemies.get(i).posx(), enemies.get(i).posy(), enemyRec.width, enemyRec.height, camera);
+				if (!enemies.get(i).alive) {
+					enemies.remove(i);
+					if (i > 0) i--;
+					ammo += 5;
+				}
 			}
+
 		}
 		//XG: Yo guys I moved the players movement into its own method.
 		movement();
@@ -387,8 +417,18 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 			dispose();
 			create();
 		}
-		//XG: Lets the player dash. Currently just teleports the player, and the cool down isn't working. Also, maybe we
-		//XG: shouldn't have a different 'if' statement for each way to dash.
+		if(inWave&&enemies.size()==0){
+			waveEnd();
+		}
+
+		if((player.overlaps(startWaveButton.getRectangle()))&&!inWave){
+			waveStart();
+		}
+		//XG: if the player returns to the shop after going there once, the game crashes.
+		if((player.overlaps(shopButton.getRectangle()))&&!inWave){
+			goToShop();
+		}
+		//XG: Lets the player dash.
 		if (!dashing && canDash && moving && Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT))
 			dashStart();
 
@@ -398,7 +438,7 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		if (player.x < 0) create();
 		if (player.x > 5000) create();
 
-		//XG: When the screen is clicked, it does some boring math stuff with 'sin' and 'cos and whatever. The end result
+		//XG: When the screen is clicked, it does some boring math stuff with 'sin' and 'cos' and whatever. The end result
 		//XG: is that it fires a bullet towards the mouse.
 		if (Gdx.input.justTouched() && ammo > 0) {
 			ammo--;
@@ -444,8 +484,11 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 			//XG: Damages enemies and removes bullets when they collide.
 			for (int i = 0; i < enemies.size(); i++) {
 				if (Intersector.overlaps(bullet, enemies.get(i).getEnemy())) {
+					points+=10;
+					scoreText.setText("Score: " +points);
 					remove = true;
 					enemies.get(i).damage(damage);
+
 				}
 			}
 			if (remove) iter.remove();
@@ -453,10 +496,11 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		}
 
 		//XG: Ends the drawing thingy and updates the camera.
+
 		batch.end();
 		camera.update();
-		ui.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
-		ui.draw();
+		stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
+		stage.draw();
 
 
 	}
@@ -560,6 +604,37 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		canDash=false;
 		whenDash = TimeUtils.millis() + dashCooldown;
 	}
+	//XG: Ends the wave
+	private void waveEnd() {
+			wave++;
+			inWave=false;
+	}
+	//XG: Starts the wave
+	private void waveStart() {
+		inWave=true;
+		int maxEnemies = wave*10;
+		int enem;
+
+		while(enemies.size()<maxEnemies){
+		for (EllipseMapObject circleObject : EnemySpawns.getByType(EllipseMapObject.class)) {
+			Ellipse enemySpawn = circleObject.getEllipse();
+			if(enemies.size()<=maxEnemies){
+			int speed = (int)(random() * wave *10 +30);
+			int h = (int)(3+wave + 3*random());
+			dumbEnemy enemy = new dumbEnemy(enemySpawn.x, enemySpawn.y, speed, h, 32, 32, "walk");
+			enemies.add(enemy);}
+		}}
+	}
+	//XG: brings the player to the shop menu. Bugs: Spawns the player on the rectangle where the shop trigger is, doesn't have items yet, creates a new set of UI every time you use it.
+	private void goToShop() {
+		parent.changeScreen(Manager.SHOP);
+		table.clear();
+	}
+	private void die() {
+		parent.changeScreen(Manager.ENDGAME);
+		table.clear();
+	}
+
 
 	//XG: So we need to dispose some of our assets, or we get a memory leak (don't know what that is but it sounds bad
 //XG: So if we can dispose something here, we should.
@@ -574,22 +649,53 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		bugAnimation.dispose();
 //music.dispose();
 		ime.dispose();
-		ui.dispose();
+		stage.dispose();
 	}
 
 	@Override
 	public void show() {
+		table = new Table();
+
+		stage.addActor(table);
+		table.setFillParent(true);
+		table.setDebug(true);
+		//XG: creates a skin using the imported assets.
+		skin = new Skin(Gdx.files.internal("pixthuluSkin/pixthulhu-ui.json"));
+		healthBar = new ProgressBar(0, healthMax, 1, false, skin);
 		healthBar.setValue(health);
-//Creates the UI.
-		table.add(healthBar).fillX().uniformX();
-		table.row().pad(10, 0, 10, 0);
-		table.add(healthText).fillX().uniformX();
-		table.row().pad(10, 0, 10, 0);
+		textFont = new BitmapFont(Gdx.files.internal("pixthuluSkin/font-export.fnt"));
+		titleColor = new Color(100, 0, 0, 1);
+		textStyle = new Label.LabelStyle(textFont, titleColor);
+		ammoText = new Label("Ammo: " + ammo, textStyle);
+		healthText = new Label("Health", textStyle);
+		waveText= new Label("Wave: ", textStyle);
+		livesText= new Label("Lives: ", textStyle);
+		scoreText = new Label("Score: " + points, textStyle);
+		healthBar.setValue(health);
+		scoreText.setText("Score: " + points);
+		livesText.setText("Score: " + lives);
+		waveText.setText("Wave: " + wave);
+		table.top();
+		table.left();
+
+
+//XG: Creates the UI.
+		table.add(healthText).left().size(70, 50).fillX();
+		//table.row().pad(0, 0, 0, 0);
+		table.add(healthBar).left().size(450, 50).fillX();
+		//table.row().right().pad(-50,0,0,0);
 		table.row();
+		table.row().pad(290,0,0,40);
+		table.add(waveText).fillX();
+		table.row();
+		table.add(scoreText).fillX();
+		table.row();
+		table.add(ammoText).fillX();
 	}
 	//XG: The resize thing makes it so our screen no longer gets distorted when we change the window size.
 	@Override
 	public void resize (int width, int height) {
+
 		viewport.update(width, height);
 	}
 
