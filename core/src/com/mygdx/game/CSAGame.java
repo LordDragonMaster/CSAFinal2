@@ -119,8 +119,6 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 	private OrthographicCamera camera;
 	private Viewport viewport;
 	//XG: Gives our game audio.
-	private Music music;
-	private Sound sound;
 	private Array<Rectangle> bullets;
 	//XG: Creates an arraylist full of the enemies.
 	private ArrayList<dumbEnemy> enemies;
@@ -198,14 +196,14 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		waveCompleteSound= Gdx.audio.newSound(Gdx.files.internal("data/random.wav"));*/
 		playerAnimation = new Animate();
 		bugAnimation = new Animate();
-		//Music music = Gdx.audio.newMusic(Gdx.files.internal("in_the_element.wav"));
+		Music music = Gdx.audio.newMusic(Gdx.files.internal("in_the_element.wav"));
 
 		//start playing music
-		//music.setVolume(0.5f);
-		//music.setLooping(true);
-		//music.play();
+		music.setVolume(0.5f);
+		music.setLooping(true);
+		music.play();
 		//XG: Creates an animation for our player.
-		playerAnimation.create(new Texture("Main_Char_Sprite.png"), 4, 3, 0.1f);
+		playerAnimation.create(new Texture("idleAnimation.png"), 3,3, 0.1f);
 		//XG: We should probably move the enemy animations into the enemy class.
 		bugAnimation.create(new Texture("BugAnim.png"), 3, 2, 0.2f);
 		//XG: So basically what our camera/viewport does is set our world to use a single united coordinates system
