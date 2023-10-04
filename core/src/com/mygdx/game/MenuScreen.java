@@ -15,16 +15,13 @@ import com.badlogic.gdx.graphics.*;
 public class MenuScreen implements Screen {
     private Manager parent; // a field to store our orchestrator
 
-    Stage stage = new Stage(new ScreenViewport());
+   private Stage stage;
 
     // our constructor with a Box2DTutorial argument
     public MenuScreen(Manager manager){
         parent = manager;     // setting the argument to our field.
+        stage = new Stage(new ScreenViewport());
 
-        Gdx.input.setInputProcessor(stage);
-
-        stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
-        stage.draw();
 
 
 
@@ -45,6 +42,7 @@ a single cell containing a button and nothing else. Next we add “table.row().p
     }
     @Override
     public void show() {
+        Gdx.input.setInputProcessor(stage);
 
 
 //XG: Creates a table covering the screen. We will put all of our buttons in this table.
@@ -59,6 +57,7 @@ a single cell containing a button and nothing else. Next we add “table.row().p
         BitmapFont titleFont = new BitmapFont(Gdx.files.internal("pixthuluSkin/font-title-export.fnt"));
        Color titleColor=new Color(100,0,0,1);
         TextButton startGame = new TextButton("Start Game", skin);
+        TextButton tutorial = new TextButton("Preferences", skin);
         TextButton exit = new TextButton("Exit", skin);
         Label.LabelStyle titleStyle = new Label.LabelStyle(titleFont, titleColor);
         Label gameName = new Label("Bug Destroyer",  titleStyle);
@@ -66,9 +65,11 @@ a single cell containing a button and nothing else. Next we add “table.row().p
         table.add(gameName).fillX().uniformX();
         table.row().pad(10, 0, 10, 0);
         table.add(startGame).fillX().uniformX();
-        table.row().pad(10, 0, 10, 0);
+        table.row();
+        table.add(tutorial).fillX().uniformX();
         table.row();
         table.add(exit).fillX().uniformX();
+
 
         //XG: Causes the buttons to have an effect when pressed.
         exit.addListener(new ChangeListener() {
@@ -91,13 +92,14 @@ a single cell containing a button and nothing else. Next we add “table.row().p
             }
         });
 
-
+        tutorial.addListener(new ChangeListener() {
+            //XG: Opens the Tutorial.
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                parent.changeScreen(Manager.PREFERENCES);
+            }
+        });
     }
-
-
-
-
-
     @Override
     public void render(float delta) {
 
@@ -105,9 +107,7 @@ a single cell containing a button and nothing else. Next we add “table.row().p
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
             stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
             stage.draw();
-
     }
-
     @Override
     public void resize(int width, int height) {
 
@@ -131,6 +131,7 @@ a single cell containing a button and nothing else. Next we add “table.row().p
 
     @Override
     public void dispose() {
+
         stage.dispose();
     }
 }

@@ -16,16 +16,7 @@ public class ShopScreen implements Screen {
     private Manager parent; // a field to store our orchestrator
 
     Stage stage = new Stage(new ScreenViewport());
-    int points;
-    int pointsSpent;
 
-    public boolean setPoints(int p) {
-        if ((points > p)) {
-            points -= p;
-            return true;
-        }
-        else return false;
-    }
 
     public ShopScreen(Manager manager){
         parent = manager;
@@ -36,6 +27,10 @@ public class ShopScreen implements Screen {
         stage.draw();
 
     }
+    BitmapFont textFont = new BitmapFont(Gdx.files.internal("pixthuluSkin/font-export.fnt"));
+    Color titleColor=new Color(0,0,100,1);
+    Label.LabelStyle textStyle = new Label.LabelStyle(textFont, titleColor);
+    Label textPoints = new Label("Points: ", textStyle);
     @Override
     public void show() {
 
@@ -48,22 +43,25 @@ public class ShopScreen implements Screen {
         stage.addActor(table);
         //XG: creates a skin using the imported assets.
         Skin skin = new Skin(Gdx.files.internal("pixthuluSkin/pixthulhu-ui.json"));
-        BitmapFont textFont = new BitmapFont(Gdx.files.internal("pixthuluSkin/font-export.fnt"));
         BitmapFont titleFont = new BitmapFont(Gdx.files.internal("pixthuluSkin/font-title-export.fnt"));
-        Color titleColor=new Color(0,0,100,1);
+
         TextButton startGame = new TextButton("Back to Game", skin);
         TextButton exit = new TextButton("Exit Game", skin);
         Label.LabelStyle titleStyle = new Label.LabelStyle(titleFont, titleColor);
-        Label.LabelStyle textStyle = new Label.LabelStyle(textFont, titleColor);
+
         Label menuName = new Label("Shop",  titleStyle);
-        TextButton buyHealth= new TextButton("Refill Health",skin);
-        TextButton buyAmmo= new TextButton("Buy 50 Ammo",skin);
-        TextButton upgradeMaxHealth= new TextButton("Increase Max Health",skin);
-        TextButton upgradeDamage= new TextButton("Increase Damage",skin);
-        TextButton upgradeSpeed= new TextButton("Increase Speed",skin);
-        TextButton upgradeDash= new TextButton("Upgrade Dash",skin);
+
+
+        TextButton buyHealth= new TextButton("Refill Health (100)",skin);
+        TextButton buyAmmo= new TextButton("Out Of Order",skin);
+        TextButton upgradeMaxHealth= new TextButton("Increase Max Health(1000)",skin);
+        TextButton upgradeDamage= new TextButton("Increase Damage(700)",skin);
+        TextButton upgradeSpeed= new TextButton("Increase Speed(200)",skin);
+        TextButton upgradeDash= new TextButton("Upgrade Dash(500)",skin);
 //XG: adds a new button, called 'newGame', to the table.
         table.add(menuName).fillX().uniformX();
+        table.row().pad(10, 0, 10, 0);
+        table.add(textPoints).fillX().uniformX();
         table.row().pad(10, 0, 10, 0);
         table.add(startGame).fillX().uniformX();
         table.row().pad(10, 0, 10, 0);
@@ -94,13 +92,41 @@ public class ShopScreen implements Screen {
             public void changed(ChangeEvent event, Actor actor) {
 
                 parent.changeScreen(Manager.CSAGAME);
-                dispose();
+                stage.clear();
 
 
             }
         });
-
-
+        buyHealth.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                parent.setRefillHealth();
+            }
+        });
+        upgradeDamage.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                parent.upgradeDamage();
+            }
+        });
+        upgradeMaxHealth.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                parent.upgradeHealthMax();
+            }
+        });
+        upgradeSpeed.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                parent.upgradeMoveSpeed();
+            }
+        });
+        upgradeDash.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                parent.upgradeDash();
+            }
+        });
     }
 
 
@@ -109,7 +135,7 @@ public class ShopScreen implements Screen {
 
     @Override
     public void render(float delta) {
-
+        textPoints.setText("Points: "+parent.getPoints());
         Gdx.gl.glClearColor(0f, 0f, 0f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));

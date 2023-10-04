@@ -24,8 +24,8 @@ import com.badlogic.gdx.Gdx;
 //XG: Used to track inputs. (keyboard, mouse, etc) Fairly self explanatory.
 import com.badlogic.gdx.Input;
 //XG: Used for sounds and music. Self-explanatory.
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 //XG: Used for adding multiple screens, like the title screen and the game over screen.
 import com.badlogic.gdx.Screen;
 //XG: Used for displaying the game and keeping everything using the same coordinate system.
@@ -46,10 +46,8 @@ import com.badlogic.gdx.maps.objects.RectangleMapObject;
 //XG: Math sucks. But it gives us our shapes and the intersector and other garbage.
 import com.badlogic.gdx.math.*;
 //XG: Used for the bullet array.
-import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
 //XG: I got no clue for this one.
 import com.badlogic.gdx.utils.ScreenUtils;
@@ -83,14 +81,19 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		Gdx.input.setInputProcessor(stage);
 		stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
 		stage.draw();
+
 		create();
 	}
-	//private Sound damageSound;
-	//private Sound shootSound;
+	float volume;
+
+	//XG: Sound effects.
+	private Sound playerDamageSound;
+	private Sound playerLoseSound;
+	private Sound shootSound;
+	private Sound waveCompleteSound;
 	//private Sound hitSound;
-	//private Sound dashSound;
-	//private Sound waveCompleteSound;
-//	private Sound deathSound;
+	private Sound dashSound;
+	private Sound enemyDeathSound;
 
 	//XG: Just a bunch of UI stuff.
 	ProgressBar healthBar;
@@ -105,16 +108,13 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 	Label.LabelStyle textStyle;
 	Label healthText;
 	Label scoreText;
-	TextButton startWave;
-	TextButton upgradeMenu;
+	Label startWaveText;
+	Label openShopText;
 	SpriteBatch batch;
-	//XG: Creates textures for our images.
-	Texture img;
-	Texture ime;
 	Texture bul;
 	int lives =3;
 
-	private Rectangle enemyRec;
+	private Rectangle enemyRec= new Rectangle();
 	//XG: Creates a camera and viewport to display the game properly.
 	private OrthographicCamera camera;
 	private Viewport viewport;
@@ -133,8 +133,9 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 	//XG: Sets the speed of the players bullets.
 	private int bulletSpeed;
 	//XG: Tracks how many points the player has.
-	private int points = 0;
-	//XG: Tracks what wave the player is on.
+	private int points;
+	//XG: Checks if the player's points need to be set to the parent's points in case of a updateStats event.
+	private boolean setPoints=false;
 	//XG: Sets how much ammo the player has.
 	private int ammo=50;
 	//XG: Used to calculate bullet trajectories.
@@ -176,32 +177,40 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 	Texture img2;
 	MapObjects StaticObjects;
 	MapObjects EnemySpawns;
-
-	RectangleMapObject startWaveButton;
-	RectangleMapObject shopButton;
 	MapObject shopButtonText;
 	MapObject startWaveButtonText;
+	boolean musicplaying=false;
+	//XG: Saves and uses the master volume controls.
+
+
 
 
 
 		@Override
 	public void create() {
+			volume = parent.getPreferences().getSoundVolume();
 		Rectangle b = new Rectangle(0, 0, 64, 64);
 		inWave = false;
-		//damageSound = Gdx.audio.newSound(Gdx.files.internal("data/hurt.wav"));
-		/*hitSound= Gdx.audio.newSound(Gdx.files.internal("data/hit.wav"));
+		playerDamageSound = Gdx.audio.newSound(Gdx.files.internal("data/hurt.wav"));
+		playerLoseSound = Gdx.audio.newSound(Gdx.files.internal("data/playerLoseSound.wav"));
+		//hitSound= Gdx.audio.newSound(Gdx.files.internal("data/hit.wav"));
 		shootSound= Gdx.audio.newSound(Gdx.files.internal("data/laserShoot.wav"));
-		dashSound= Gdx.audio.newSound(Gdx.files.internal("data/jump.wav"));
-		deathSound= Gdx.audio.newSound(Gdx.files.internal("data/explosion.wav"));
-		waveCompleteSound= Gdx.audio.newSound(Gdx.files.internal("data/random.wav"));*/
+		dashSound= Gdx.audio.newSound(Gdx.files.internal("data/dashSound.wav"));
+		enemyDeathSound = Gdx.audio.newSound(Gdx.files.internal("data/explosion.wav"));
+		waveCompleteSound= Gdx.audio.newSound(Gdx.files.internal("data/waveEndSound.wav"));
 		playerAnimation = new Animate();
 		bugAnimation = new Animate();
+		//XG: Let's see if my preferences menu works like I want it to...
 		Music music = Gdx.audio.newMusic(Gdx.files.internal("in_the_element.wav"));
 
 		//start playing music
-		music.setVolume(0.5f);
+		music.setVolume(parent.getPreferences().getMusicVolume());
 		music.setLooping(true);
+		//XG: Makes sure that the music doesn't play multiple times.
+		if((!musicplaying)&&(parent.getPreferences().isMusicEnabled())){
 		music.play();
+		musicplaying=true;
+		}
 		//XG: Creates an animation for our player.
 		playerAnimation.create(new Texture("idleAnimation.png"), 3,3, 0.1f);
 		//XG: We should probably move the enemy animations into the enemy class.
@@ -213,12 +222,11 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		viewport = new FitViewport(300, 300, camera);
 		batch = new SpriteBatch();
 		//XG: Setting our textures.
-		img = new Texture("badlogic.jpg");
+
 		img2 = new Texture("Main_Char_Sprite.png");
-		ime = new Texture("badlogic.jpg");
 		bul = new Texture("Bullet.png");
 		//XG: Not sure what we need this rectangle for.
-		enemyRec = new Rectangle();
+		//enemyRec = new Rectangle();
 		//XG: These are used for storing data imported from Tiled.
 		StaticObjects = new MapObjects();
 		EnemySpawns = new MapObjects();
@@ -226,24 +234,14 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		player = new Rectangle();
 		player.x = 870;
 		player.y = 780;
-		healthMax = 5;
+		updateStats();
+
 		health = healthMax;
 
 		moving = false;
 		player.width = 32;
 		player.height = 32;
-		moveSpeed = 100;
-		damage = 5;
-		bulletSpeed = 400;
-		invincible = false;
-		invinciblePeriod = 700;
-		invincibleFinish = 0;
-		dashSpeed = 250;
-		dashing = false;
-		canDash = true;
-		dashFinish = 0;
-		dashTime = 300;
-		dashCooldown = 1200;
+
 		whenDash = 0;
 		//XG: Creates our collision checker, which is what lets us avoid walking into walls.
 		pl = new Vector2(player.x, player.y);
@@ -267,10 +265,9 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		//XG: Spawns enemies at the locations where we've set them to spawn at.
 		EnemySpawns = tiledMap.getLayers().get("Enemy Spawns").getObjects();
 		Gdx.app.log("OMG", "IT WORKS!" + EnemySpawns.getCount());
-		startWaveButton = (RectangleMapObject) tiledMap.getLayers().get("Buttons").getObjects().get(0);
-		shopButton = (RectangleMapObject) tiledMap.getLayers().get("Buttons").getObjects().get(1);
 		startWaveButtonText = tiledMap.getLayers().get("Buttons").getObjects().get(2);
 		shopButtonText = tiledMap.getLayers().get("Buttons").getObjects().get(3);
+
 
 
 
@@ -301,6 +298,8 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 	//XG: fires a bullet. Triggered by a method that checks for clicking far below.
 	private void fire(double velX, double velY) {
 		Rectangle b = new Rectangle(player.x, player.y, 32, 32);
+		//XG: plays the sound that plays when the player shoots
+		shootSound.play(volume);
 		//XG: creates a new bullet as a bullet object.
 		bullet bullet = new bullet(velX, velY, b);
 		//XG: sets the bullets width to be the same as its height.
@@ -390,15 +389,18 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		for (int i = 0; i < enemies.size(); i++) {
 			if (player.overlaps(enemies.get(i).getEnemy())&& dashing){
 				enemies.get(i).damage(damage);
-				points+=15;
+				points+=30;
 				scoreText.setText("Score: "+ points);
 				ammo++;
 			}
 			if (player.overlaps(enemies.get(i).getEnemy()) && !invincible) {
 				health -= 1;
+				playerDamageSound.play(volume);
 				if (health <=0){
 					lives-=1;
-					ammo+=50;
+					playerLoseSound.play(volume);
+					if(ammo<50){
+					ammo=50;}
 					healthBar.clear();
 
 					health=healthMax;
@@ -414,7 +416,9 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 				enemies.get(i).attack(xOrigin(), yOrigin());
 				bugAnimation.render(enemies.get(i).posx(), enemies.get(i).posy(), enemyRec.width, enemyRec.height, camera);
 				if (!enemies.get(i).alive) {
+					enemyDeathSound.play(volume);
 					enemies.remove(i);
+
 					if (i > 0) i--;
 					ammo += 1;
 				}
@@ -432,22 +436,23 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 			waveEnd();
 		}
 
-		if((player.overlaps(startWaveButton.getRectangle()))&&!inWave){
+		if((Gdx.input.isKeyJustPressed(Input.Keys.P))&&!inWave){
 			waveStart();
 		}
 		//XG: if the player returns to the shop after going there once, the game crashes.
-		if((player.overlaps(shopButton.getRectangle()))&&!inWave){
+		if((Gdx.input.isKeyJustPressed(Input.Keys.O))&&!inWave){
+			parent.setPoints(points);
 			goToShop();
 		}
 		//XG: Lets the player dash.
-		if (!dashing && canDash && moving && Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT))
+		if (!dashing && canDash && moving && Gdx.input.isKeyPressed(Input.Keys.SPACE))
 			dashStart();
 
 		//XG: Restarts the player when they go out of bounds.
 		if (player.y < 0) create();
-		if (player.y > 5000) create();// hey it ahmed  create() restart the game
+		if (player.y >= 1600) create();// hey it ahmed  create() restart the game
 		if (player.x < 0) create();
-		if (player.x > 5000) create();
+		if (player.x >= 1600) create();
 
 		//XG: When the screen is clicked, it does some boring math stuff with 'sin' and 'cos' and whatever. The end result
 		//XG: is that it fires a bullet towards the mouse.
@@ -476,9 +481,9 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 			bullet.x += bullet.getVelX() * Gdx.graphics.getDeltaTime();
 			//XG: Removes the bullet if it goes beyond set boundaries.
 			if (bullet.y < 0) remove = true;
-			if (bullet.y > 5000) remove = true;
+			if (bullet.y > 1600) remove = true;
 			if (bullet.x < 0) remove = true;
-			if (bullet.x > 5000) remove = true;
+			if (bullet.x > 1600) remove = true;
 			//XG: Draws the bullets.
 			batch.draw(bul, bullet.x, bullet.y, bullet.width, bullet.height);
 			//XG: Removes the bullets if they run into a wall.
@@ -495,7 +500,7 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 			//XG: Damages enemies and removes bullets when they collide.
 			for (int i = 0; i < enemies.size(); i++) {
 				if (Intersector.overlaps(bullet, enemies.get(i).getEnemy())) {
-					points+=10;
+					points+=20;
 					scoreText.setText("Score: " +points);
 					remove = true;
 					enemies.get(i).damage(damage);
@@ -515,6 +520,28 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		table.setFillParent(true);
 
 
+	}
+	public void updateStats(){
+			if (setPoints){
+				points= parent.getPoints();
+			setPoints=false;
+			}
+		healthMax = parent.getHealthMax();
+		moveSpeed = parent.getMoveSpeed();
+		damage = parent.getDamage();
+		bulletSpeed = 400;
+		invincible = false;
+		invinciblePeriod = 700;
+		invincibleFinish = 0;
+		dashSpeed = parent.getDashSpeed();
+		dashing = false;
+		canDash = true;
+		dashFinish = 0;
+		dashTime = 300;
+		dashCooldown = parent.getDashCooldown();
+		if(parent.getRefillHealth()){
+			health=healthMax;
+		}
 	}
 
 	private void dashStart() {
@@ -555,7 +582,7 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		}
 		invincible = true;
 		dashFinish = TimeUtils.millis() + dashTime;
-	//	dashSound.play();
+		dashSound.play(volume);
 		dashing = true;
 	}
 
@@ -619,15 +646,19 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 	}
 	//XG: Ends the wave
 	private void waveEnd() {
+			waveCompleteSound.play(volume);
 			wave++;
 			health=healthMax;
 			inWave=false;
+		startWaveText.setVisible(true);
+		openShopText.setVisible(true);
 	}
 	//XG: Starts the wave
 	private void waveStart() {
 		inWave=true;
 		int maxEnemies = wave*10;
-		int enem;
+		startWaveText.setVisible(false);
+		openShopText.setVisible(false);
 
 		while(enemies.size()<maxEnemies){
 		for (EllipseMapObject circleObject : EnemySpawns.getByType(EllipseMapObject.class)) {
@@ -642,6 +673,7 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 	//XG: brings the player to the shop menu. Bugs: Spawns the player on the rectangle where the shop trigger is, doesn't have items yet, creates a new set of UI every time you use it.
 	private void goToShop() {
 			parent.setPoints(points);
+			setPoints=true;
 		parent.changeScreen(Manager.SHOP);
 		table.clear();
 	}
@@ -655,29 +687,29 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 	}
 
 
-	//XG: So we need to dispose some of our assets, or we get a memory leak (don't know what that is but it sounds bad
+	//XG: So we need to dispose some of our assets, or we get a memory leak (don't know what that is, but it sounds bad)
 //XG: So if we can dispose something here, we should.
 	@Override
 	public void dispose () {
 		batch.dispose();
-		img.dispose();
 		bul.dispose();
 		tiledMap.dispose();
 		img2.dispose();
 		playerAnimation.dispose();
 		bugAnimation.dispose();
 //music.dispose();
-		ime.dispose();
 		stage.dispose();
-	//	dashSound.dispose();
-		//damageSound.dispose();
+		dashSound.dispose();
+		playerDamageSound.dispose();
 		//hitSound.dispose();
-		//deathSound.dispose();
-	//	waveCompleteSound.dispose();
+		enemyDeathSound.dispose();
+		waveCompleteSound.dispose();
+		shootSound.dispose();
 	}
 
 	@Override
 	public void show() {
+			updateStats();
 		table = new Table();
 
 		stage.addActor(table);
@@ -699,6 +731,8 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		scoreText.setText("Score: " + points);
 		livesText.setText("Lives: " + lives);
 		waveText.setText("Wave: " + wave);
+		startWaveText = new Label("Start Wave: P", textStyle);
+		openShopText = new Label("Open Shop: O", textStyle);
 		table.top();
 		table.left();
 
@@ -715,8 +749,12 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 		table.add(scoreText).fillX();
 		table.row();
 		table.add(ammoText).fillX();
+		table.add(startWaveText);
 		table.row();
 		table.add(livesText).fillX();
+		table.add(openShopText);
+
+
 	}
 	//XG: The resize thing makes it so our screen no longer gets distorted when we change the window size.
 	@Override
@@ -728,4 +766,5 @@ public class CSAGame extends ApplicationAdapter implements Screen {
 	@Override
 	public void hide() {
 	}
+
 }

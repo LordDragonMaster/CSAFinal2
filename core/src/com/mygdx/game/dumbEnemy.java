@@ -41,7 +41,7 @@ yes =0;
 
 
 public void attack(float x,float y){
-    if (alive == true) {
+    if (alive) {
         Vector3 playerPos = new Vector3();
         playerPos.set(x, y, 0);
 

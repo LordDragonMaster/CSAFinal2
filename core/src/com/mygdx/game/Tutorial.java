@@ -1,11 +1,11 @@
 package com.mygdx.game;
 import com.badlogic.gdx.Screen;
 
-public class MainScreen implements Screen {
+public class Tutorial implements Screen {
     private Manager parent; // a field to store our orchestrator
 
     // our constructor with a Box2DTutorial argument
-    public MainScreen(Manager manager){
+    public Tutorial(Manager manager){
         parent = manager;     // setting the argument to our field.
     }
     @Override
